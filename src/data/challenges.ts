@@ -48,9 +48,13 @@ export const challenges: Challenge[] = [
   {
     id: 'solo-02',
     category: 'SOLO',
-    title: 'PLATZHALTER Solo 2',
-    text: 'Hier den Text deiner Solo-Karte eintragen.',
-    timeLimitSec: 60,
+    title: 'Donut-Treffer',
+    text:
+      'Nimm den kleinen aufblasbaren Donutreifen und einen Tischtennisball und geh hoch auf die Empore des Gartenhäuschens. ' +
+      'Wirf zuerst den Donut in den Pool, er muss im Wasser landen. ' +
+      'Wirf danach den Tischtennisball in den Donut hinein. ' +
+      'Du hast nur einen Versuch: Triffst du hinein, ist die Challenge geschafft, sonst gibt es keine Punkte.',
+    material: ['Aufblasbarer Donutreifen', 'Tischtennisball'],
   },
   {
     id: 'meisterschaft-01',
