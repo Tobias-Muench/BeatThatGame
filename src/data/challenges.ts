@@ -83,9 +83,14 @@ export const challenges: Challenge[] = [
   {
     id: 'duell-01',
     category: 'DUELL',
-    title: 'PLATZHALTER Duell 1',
-    text: 'Hier den Text deiner Duell-Karte eintragen.',
-    timeLimitSec: 30,
+    title: 'Fliesen-Ditschen',
+    text:
+      'Stellt euch mit je einem Tischtennisball in die beiden Ecken am Kopfende des Pools. ' +
+      'Ditscht den Ball so über die Poolfliesen, dass er möglichst viele Fliesen berührt. ' +
+      'Jede Fliese zählt nur einmal. ' +
+      'Jeder hat drei Durchgänge, die berührten Fliesen aus allen drei Durchgängen werden addiert. ' +
+      'Gewonnen hat, wer am Ende auf die meisten Fliesen kommt.',
+    material: ['2 Tischtennisbälle'],
   },
   {
     id: 'duell-02',
