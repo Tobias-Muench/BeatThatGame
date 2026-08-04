@@ -11,6 +11,8 @@ offline, ohne Konto und ohne Server.
     pro Runde nur nach der Kategorie.
   - *Vorbereitet in der App* – die hinterlegten Challenges werden pro Runde gezogen und groß
     angezeigt.
+- **Zufallsrad für Challenges, die eine ausgeloste Zahl brauchen** – erscheint automatisch neben
+  der Challenge und kann innerhalb einer Runde beliebig oft neu gedreht werden.
 - **2 bis 8 Spieler**, Namen frei wählbar, 5 bis 10 Runden.
 - **Chip-Verwaltung nach Originalregel**: jeder startet mit 5×1 + 3×3 + 2×5 Chips. Jeder Chip ist
   genau einmal einsetzbar.
@@ -59,23 +61,46 @@ HTTPS – Service Worker sind auf ungesicherten Adressen abgeschaltet.
 
 ## Eigene Challenges hinterlegen
 
-Alle Challenges des vorbereiteten Modus stehen in **`src/data/challenges.ts`**. Die Datei enthält
-aktuell acht klar markierte Platzhalter, damit der Modus sofort läuft. Ersetze sie durch die Texte
-deiner Karten und hänge beliebig viele weitere an:
+Alle Challenges des vorbereiteten Modus stehen in **`src/data/challenges.ts`**. Aktuell sind zehn
+Challenges rund um Pool und Garten hinterlegt: drei Solo, zwei Meisterschaft, zwei Zweigespann und
+drei Duell. Hänge beliebig viele weitere an:
 
 ```ts
 {
-  id: 'solo-03',                          // eindeutig
+  id: 'solo-04',                          // eindeutig
   category: 'SOLO',                       // SOLO | MEISTERSCHAFT | ZWEIGESPANN | DUELL
   title: 'Becherturm',                    // kurze Überschrift
   text: 'Stapel in 30 Sekunden zehn Becher zu einer Pyramide.',
-  timeLimitSec: 30,                       // optional
-  material: ['10 Becher'],                // optional
+  timeLimitSec: 30,                       // optional, erscheint als "Zeitlimit: 30 Sekunden"
+  material: ['10 Becher'],                // optional, ein Chip pro Eintrag
 }
 ```
 
+Es muss nicht in jeder Kategorie gleich viele geben – die App zieht pro Runde zufällig aus allen
+noch nicht gespielten Challenges, optional auf eine Kategorie gefiltert.
+
 Danach `npm run build` ausführen und die App neu bereitstellen. Doppelte IDs oder leere Texte
 meldet die App beim Start in der Browser-Konsole.
+
+## Zufallsrad
+
+Manche Challenges brauchen vor jedem Durchgang eine ausgeloste Zahl – etwa das Zielgewicht beim
+Wet-T-Shirt-Contest oder die zu schätzende Distanz. Diese Räder stehen in
+**`src/data/wheels.ts`**, gebunden an die ID der Challenge:
+
+```ts
+'duell-02': {
+  title:  'Zielgewicht drehen',
+  hint:   'Vor jedem Duell einmal drehen.',
+  unit:   'g',
+  values: [300, 325, 350, 400, 425, 450, 500],
+}
+```
+
+Taucht eine Challenge-ID dort auf, zeigt die App das Rad automatisch unter der Karte an – in der
+Challenge-, Einsatz- und Auswertungsphase, so dass pro Paar neu gedreht werden kann. Das Ergebnis
+bleibt über die Phasen einer Runde stehen und verfällt, sobald eine andere Challenge gezogen wird.
+Die Anzahl der Felder ist frei; die Farben werden zyklisch vergeben.
 
 ## Entwicklung
 
@@ -107,8 +132,19 @@ npm run test:e2e
 | `src/game/selectors.ts` | Rangliste, Restbudget, maximal erreichbarer Endstand |
 | `src/game/storage.ts` | Spielstand im `localStorage` |
 | `src/data/challenges.ts` | **hier kommen deine Challenges rein** |
+| `src/data/wheels.ts` | Zufallsräder, pro Challenge-ID |
 | `src/screens/` | Start, Setup, Runde, Endstand |
-| `src/components/` | Chips, Spielerkarten, Paarbildung, Auswertung, Übersicht |
+| `src/components/` | Chips, Spielerkarten, Paarbildung, Auswertung, Übersicht, Zufallsrad |
+| `src/styles.css` | Farbtokens und Layout |
 
 Die Spiellogik ist bewusst vollständig von der Oberfläche getrennt und in
-`src/game/reducer.test.ts` mit 25 Tests abgedeckt.
+`src/game/reducer.test.ts` mit 25 Tests abgedeckt; `src/data/wheels.test.ts` prüft mit fünf
+weiteren, dass jedes Radfeld sauber unter dem Zeiger landet.
+
+### Farben
+
+Die Oberfläche übernimmt die Farbwelt des Originalspiels: oranger Akzent wie der Kartenkopf,
+weiße Karten auf hellem Grund und die vier Kategoriefarben der Kartenleisten – Solo orange,
+Meisterschaft pink, Zweigespann türkis, Duell lila. Alle Werte stehen als CSS-Variablen im
+`:root`-Block von `src/styles.css`; `--cat-*` färbt Rand und Badge der Challenge-Karte, die
+Kategorie-Kacheln und die Filterknöpfe.
