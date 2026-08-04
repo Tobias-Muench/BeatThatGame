@@ -2,11 +2,13 @@ import { useState } from 'react';
 import { CategoryPicker } from '../components/CategoryPicker';
 import { ChallengeCard } from '../components/ChallengeCard';
 import { ChipPicker } from '../components/ChipPicker';
+import { LuckyWheel, type WheelSpin } from '../components/LuckyWheel';
 import { OverviewPanel } from '../components/OverviewPanel';
 import { PlayerCard } from '../components/PlayerCard';
 import { ResolvePanel } from '../components/ResolvePanel';
 import { TeamBuilder } from '../components/TeamBuilder';
 import { availableChallenges, challengeById, drawChallenge } from '../data/challenges';
+import { wheelFor } from '../data/wheels';
 import {
   currentRound,
   playersWithoutBet,
@@ -43,11 +45,26 @@ const PHASE_TITLE: Record<RoundPhase, string> = {
 export function RoundScreen({ state, dispatch, canUndo, onUndo, onQuit }: Props) {
   const [showOverview, setShowOverview] = useState(false);
   const [filter, setFilter] = useState<Category | null>(null);
+  // Letzter Dreh samt Challenge-ID: So verfaellt das Ergebnis automatisch,
+  // sobald eine andere Challenge gezogen wird, bleibt aber ueber die Phasen
+  // einer Runde hinweg stehen.
+  const [wheelSpin, setWheelSpin] = useState<{ challengeId: string; spin: WheelSpin } | null>(null);
 
   const round = currentRound(state);
   const starter = state.players.find((p) => p.id === round.starterId);
   const challenge = round.challengeId ? challengeById(round.challengeId) : undefined;
   const needsGroups = round.category ? CATEGORY_INFO[round.category].needsGroups : false;
+
+  const wheel = wheelFor(challenge?.id);
+  const spin = wheelSpin && wheelSpin.challengeId === challenge?.id ? wheelSpin.spin : null;
+  const wheelBlock =
+    wheel && challenge ? (
+      <LuckyWheel
+        wheel={wheel}
+        spin={spin}
+        onSpin={(next) => setWheelSpin({ challengeId: challenge.id, spin: next })}
+      />
+    ) : null;
 
   // Nur die tatsächlich vorkommenden Phasen als Fortschrittspunkte anzeigen.
   const phases: RoundPhase[] = ['challenge'];
@@ -140,7 +157,10 @@ export function RoundScreen({ state, dispatch, canUndo, onUndo, onQuit }: Props)
               </div>
 
               {challenge ? (
-                <ChallengeCard challenge={challenge} />
+                <>
+                  <ChallengeCard challenge={challenge} />
+                  {wheelBlock}
+                </>
               ) : poolLeft === 0 ? (
                 <p className="empty-note">
                   In dieser Kategorie sind alle hinterlegten Challenges verbraucht. Wähle eine
@@ -171,6 +191,7 @@ export function RoundScreen({ state, dispatch, canUndo, onUndo, onQuit }: Props)
             {challenge && state.mode === 'prepared' && (
               <div style={{ marginBottom: 16 }}>
                 <ChallengeCard challenge={challenge} />
+                {wheelBlock}
               </div>
             )}
             <div className="player-grid">
@@ -242,7 +263,10 @@ export function RoundScreen({ state, dispatch, canUndo, onUndo, onQuit }: Props)
         )}
 
         {round.phase === 'resolve' && (
-          <ResolvePanel players={state.players} round={round} dispatch={dispatch} />
+          <>
+            {wheelBlock}
+            <ResolvePanel players={state.players} round={round} dispatch={dispatch} />
+          </>
         )}
       </div>
 

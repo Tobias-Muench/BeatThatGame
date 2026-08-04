@@ -125,9 +125,13 @@ export const challenges: Challenge[] = [
   {
     id: 'duell-02',
     category: 'DUELL',
-    title: 'PLATZHALTER Duell 2',
-    text: 'Hier den Text deiner Duell-Karte eintragen.',
-    material: ['Maßband'],
+    title: 'Wet-T-Shirt-Contest',
+    text:
+      'Das Zufallsrad bestimmt vor eurem Duell das Zielgewicht. ' +
+      'Jeder bekommt ein T-Shirt, das im trockenen Zustand 130 Gramm wiegt. ' +
+      'Haltet es in den Pool und lasst es sich mit Wasser vollsaugen, überschüssiges Wasser könnt ihr wieder auswringen. ' +
+      'Legt das T-Shirt anschließend auf die Waage: Gewonnen hat, wer mit dem Gesamtgewicht am nächsten am ausgelosten Zielgewicht liegt.',
+    material: ['T-Shirt pro Spieler (130 g)', '2 Eimer', 'Waage'],
   },
 ];
 
