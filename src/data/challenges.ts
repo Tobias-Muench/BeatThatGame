@@ -57,6 +57,18 @@ export const challenges: Challenge[] = [
     material: ['Aufblasbarer Donutreifen', 'Tischtennisball'],
   },
   {
+    id: 'solo-03',
+    category: 'SOLO',
+    title: 'Dosenturm',
+    text:
+      'Stapel die roten Dosen in einer Minute zu einem Turm. ' +
+      'Fällt er um, darfst du weiterbauen. ' +
+      'Klärt vorher gemeinsam in der Runde, ob sieben Dosen gelten (bei schwachem Wind) oder sechs (bei stärkerem Wind). ' +
+      'Am Ende müssen so viele Dosen aufeinander stehen und drei Sekunden als Turm stehen bleiben. Nur dann ist die Challenge geschafft.',
+    timeLimitSec: 60,
+    material: ['7 rote Dosen'],
+  },
+  {
     id: 'meisterschaft-01',
     category: 'MEISTERSCHAFT',
     title: 'Königs-Wurf',
