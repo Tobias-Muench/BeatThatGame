@@ -1,0 +1,151 @@
+import { useState } from 'react';
+import { saveRoster } from '../game/storage';
+import {
+  DEFAULT_ROUNDS,
+  MAX_PLAYERS,
+  MAX_ROUNDS,
+  MIN_PLAYERS,
+  MIN_ROUNDS,
+  PLAYER_COLORS,
+  type GameMode,
+} from '../game/types';
+
+interface Props {
+  initialNames: string[];
+  onCancel: () => void;
+  onStart: (names: string[], mode: GameMode, rounds: number) => void;
+}
+
+const ROUND_OPTIONS = Array.from(
+  { length: MAX_ROUNDS - MIN_ROUNDS + 1 },
+  (_, i) => MIN_ROUNDS + i,
+);
+
+export function SetupScreen({ initialNames, onCancel, onStart }: Props) {
+  const [names, setNames] = useState<string[]>(() => {
+    const base = initialNames.filter((n) => n.trim()).slice(0, MAX_PLAYERS);
+    while (base.length < MIN_PLAYERS) base.push('');
+    return base;
+  });
+  const [mode, setMode] = useState<GameMode>('cards');
+  const [rounds, setRounds] = useState(DEFAULT_ROUNDS);
+
+  const filled = names.map((n) => n.trim()).filter(Boolean);
+  const canStart = filled.length >= MIN_PLAYERS;
+
+  function update(index: number, value: string) {
+    setNames((prev) => prev.map((n, i) => (i === index ? value : n)));
+  }
+
+  function start() {
+    if (!canStart) return;
+    saveRoster(filled);
+    onStart(filled, mode, rounds);
+  }
+
+  return (
+    <div className="screen">
+      <div className="topbar">
+        <span className="topbar-round">Neues Spiel</span>
+        <div className="topbar-spacer" />
+        <button type="button" className="btn btn-sm btn-ghost" onClick={onCancel}>
+          Abbrechen
+        </button>
+      </div>
+
+      <div className="setup-grid">
+        <div className="setup-col">
+          <h2>Spieler ({filled.length})</h2>
+          <div className="player-inputs">
+            {names.map((name, i) => (
+              <div className="player-input-row" key={i}>
+                <span className="dot" style={{ background: PLAYER_COLORS[i % PLAYER_COLORS.length] }} />
+                <input
+                  value={name}
+                  placeholder={`Spieler ${i + 1}`}
+                  maxLength={16}
+                  onChange={(e) => update(i, e.target.value)}
+                  aria-label={`Name Spieler ${i + 1}`}
+                />
+                <button
+                  type="button"
+                  className="icon-btn"
+                  aria-label={`Spieler ${i + 1} entfernen`}
+                  disabled={names.length <= MIN_PLAYERS}
+                  onClick={() => setNames((prev) => prev.filter((_, j) => j !== i))}
+                >
+                  &minus;
+                </button>
+              </div>
+            ))}
+          </div>
+          <button
+            type="button"
+            className="btn btn-sm"
+            disabled={names.length >= MAX_PLAYERS}
+            onClick={() => setNames((prev) => [...prev, ''])}
+          >
+            + Spieler hinzufügen
+          </button>
+        </div>
+
+        <div className="setup-col">
+          <h2>Woher kommen die Challenges?</h2>
+          <div className="option-list">
+            <button
+              type="button"
+              className="option"
+              aria-pressed={mode === 'cards'}
+              onClick={() => setMode('cards')}
+            >
+              <span className="opt-name">Karten am Tisch</span>
+              <span className="opt-desc">
+                Ihr zieht die Challenges wie gewohnt von den echten Karten. Die App fragt pro Runde
+                nur nach der Kategorie und verwaltet Chips und Punkte.
+              </span>
+            </button>
+            <button
+              type="button"
+              className="option"
+              aria-pressed={mode === 'prepared'}
+              onClick={() => setMode('prepared')}
+            >
+              <span className="opt-name">Vorbereitet in der App</span>
+              <span className="opt-desc">
+                Die hinterlegten Challenges werden pro Runde in die App gezogen und groß
+                angezeigt.
+              </span>
+            </button>
+          </div>
+
+          <h2 style={{ marginTop: 8 }}>Runden</h2>
+          <div className="rounds-row">
+            {ROUND_OPTIONS.map((r) => (
+              <button
+                key={r}
+                type="button"
+                className="round-pill"
+                aria-pressed={rounds === r}
+                onClick={() => setRounds(r)}
+              >
+                {r}
+              </button>
+            ))}
+          </div>
+          <p className="phase-hint">
+            10 Runden entsprechen den 10 Chips des Originalspiels. Kürzere Spiele lassen einfach
+            Chips übrig.
+          </p>
+        </div>
+      </div>
+
+      <div className="actionbar">
+        {!canStart && <span className="warn">Mindestens {MIN_PLAYERS} Spieler eintragen.</span>}
+        <div className="spacer" />
+        <button type="button" className="btn btn-primary" disabled={!canStart} onClick={start}>
+          Spiel starten
+        </button>
+      </div>
+    </div>
+  );
+}

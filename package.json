@@ -1,0 +1,29 @@
+{
+  "name": "beat-that-game",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Digitale Spielleiter-App fuer das Partyspiel Beat That! (Android-Tablet, offline)",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "node scripts/e2e-prepared.mjs && node scripts/e2e-cards.mjs && node scripts/e2e-offline.mjs"
+  },
+  "dependencies": {
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.10",
+    "@types/react-dom": "^19.1.7",
+    "@vitejs/plugin-react": "^5.0.0",
+    "playwright": "^1.62.1",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.3",
+    "vite-plugin-pwa": "^1.0.3",
+    "vitest": "^3.2.4"
+  }
+}
