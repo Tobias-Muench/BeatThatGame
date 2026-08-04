@@ -1,18 +1,34 @@
+/*
+ * Farbwelt des Originalspiels: oranger Kartenkopf, weisse Karten und die
+ * vier Kategoriefarben der Kartenleisten. Der Hintergrund bleibt bewusst
+ * ruhiges Hellgrau statt Karton-Cyan, damit Karten und Kategoriefarben
+ * herausstechen.
+ */
 :root {
-  --bg: #10131a;
-  --bg-raised: #1a1f2b;
-  --bg-raised-2: #232937;
-  --line: #313a4d;
-  --text: #eef2f8;
-  --text-dim: #97a3b8;
-  --accent: #f5b301;
-  --accent-ink: #10131a;
-  --success: #35c46b;
-  --danger: #ef4d4d;
+  --bg: #eceff4;
+  --bg-raised: #ffffff;
+  --bg-raised-2: #e3e8ef;
+  --line: #c8d0dc;
+  --text: #14181f;
+  --text-dim: #5d6879;
+  --accent: #ef6c1a;
+  --accent-ink: #ffffff;
+  /* Dunklere Variante fuer Orange als Textfarbe - lesbar auf Hell. */
+  --accent-text: #c0530c;
+  --success: #1c9d54;
+  --danger: #d0332f;
+
+  --cat-solo: #f57623;
+  --cat-meisterschaft: #e23c8e;
+  --cat-zweigespann: #1f95a6;
+  --cat-duell: #8b4399;
+  --brand-cyan: #35bde3;
+  --brand-blue: #0f6bc8;
+
   --radius: 16px;
   --tap: 64px;
 
-  color-scheme: dark;
+  color-scheme: light;
   font-family: 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
   font-size: 17px;
 }
@@ -245,7 +261,7 @@ button {
 }
 
 .warn {
-  color: var(--accent);
+  color: var(--accent-text);
   font-size: 0.95rem;
   font-weight: 600;
 }
@@ -272,7 +288,7 @@ button {
 }
 
 .category-tile[aria-pressed='true'] {
-  border-color: var(--accent);
+  border-color: var(--cat, var(--accent));
   background: var(--bg-raised-2);
 }
 
@@ -283,7 +299,7 @@ button {
 
 .category-tile .cat-short {
   font-weight: 600;
-  color: var(--accent);
+  color: var(--cat-text, var(--accent-text));
   font-size: 0.9rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -295,24 +311,52 @@ button {
   line-height: 1.35;
 }
 
+/* ----------------------------------------------------------- Kategoriefarben */
+
+/*
+ * Jede Kategorie traegt die Farbe ihrer Leiste auf den Originalkarten.
+ * --cat ist der volle Farbton fuer Flaechen und Raender, --cat-text die
+ * abgedunkelte Variante fuer Schrift auf hellem Grund.
+ */
+.cat-solo {
+  --cat: var(--cat-solo);
+  --cat-text: #c25a10;
+}
+
+.cat-meisterschaft {
+  --cat: var(--cat-meisterschaft);
+  --cat-text: #c22a76;
+}
+
+.cat-zweigespann {
+  --cat: var(--cat-zweigespann);
+  --cat-text: #147080;
+}
+
+.cat-duell {
+  --cat: var(--cat-duell);
+  --cat-text: #7a3688;
+}
+
 /* ---------------------------------------------------------------- Challenge-Karte */
 
 .challenge-card {
   background: var(--bg-raised);
-  border: 3px solid var(--accent);
+  border: 3px solid var(--cat, var(--accent));
   border-radius: 22px;
   padding: 26px 30px;
   display: flex;
   flex-direction: column;
   gap: 14px;
+  box-shadow: 0 6px 18px rgba(20, 24, 31, 0.08);
 }
 
 .challenge-card .cc-cat {
   align-self: flex-start;
   padding: 6px 14px;
   border-radius: 999px;
-  background: var(--accent);
-  color: var(--accent-ink);
+  background: var(--cat, var(--accent));
+  color: #ffffff;
   font-weight: 800;
   font-size: 0.85rem;
   letter-spacing: 0.08em;
@@ -349,6 +393,7 @@ button {
 
 .wheel-box {
   margin-top: 16px;
+  box-shadow: 0 6px 18px rgba(20, 24, 31, 0.08);
   display: flex;
   align-items: center;
   gap: 26px;
@@ -391,7 +436,7 @@ button {
   border-right: 13px solid transparent;
   border-top: 22px solid var(--accent);
   z-index: 1;
-  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.5));
+  filter: drop-shadow(0 2px 2px rgba(20, 24, 31, 0.3));
 }
 
 .wheel-body {
@@ -428,7 +473,7 @@ button {
 .wheel-result strong {
   font-size: 2.4rem;
   font-weight: 800;
-  color: var(--accent);
+  color: var(--accent-text);
   letter-spacing: -0.02em;
 }
 
@@ -534,13 +579,13 @@ button {
 }
 
 .chip.v1 {
-  color: #7fd1ff;
+  color: var(--brand-blue);
 }
 .chip.v3 {
-  color: #ffa552;
+  color: var(--accent-text);
 }
 .chip.v5 {
-  color: #ffe066;
+  color: #c22a76;
 }
 
 .chip[aria-pressed='true'] {
@@ -586,13 +631,13 @@ button {
 }
 
 .chip-static.v1 {
-  color: #7fd1ff;
+  color: var(--brand-blue);
 }
 .chip-static.v3 {
-  color: #ffa552;
+  color: var(--accent-text);
 }
 .chip-static.v5 {
-  color: #ffe066;
+  color: #c22a76;
 }
 
 .chip-static.sm {
@@ -672,13 +717,13 @@ button {
 .joker-note {
   padding: 14px 18px;
   border-radius: var(--radius);
-  background: rgba(245, 179, 1, 0.12);
+  background: rgba(239, 108, 26, 0.1);
   border: 2px solid var(--accent);
   line-height: 1.45;
 }
 
 .joker-note strong {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 /* ---------------------------------------------------------------- Ergebnisse */
@@ -704,13 +749,13 @@ button {
 .result-btn.ok[aria-pressed='true'] {
   background: var(--success);
   border-color: var(--success);
-  color: #06210f;
+  color: #ffffff;
 }
 
 .result-btn.no[aria-pressed='true'] {
   background: var(--danger);
   border-color: var(--danger);
-  color: #2a0606;
+  color: #ffffff;
 }
 
 .delta {
@@ -736,7 +781,7 @@ button {
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(6, 8, 12, 0.86);
+  background: rgba(20, 24, 31, 0.55);
   display: flex;
   flex-direction: column;
   padding: 24px;
@@ -806,7 +851,7 @@ button {
 }
 
 .standing-row.is-leader .standing-rank {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .standing-name {
@@ -915,7 +960,7 @@ button {
   font-weight: 800;
   letter-spacing: 0.07em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .log-head .log-title {
@@ -981,7 +1026,7 @@ button {
 
 .brand h1 em {
   font-style: normal;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .brand p {
@@ -1112,9 +1157,9 @@ button {
 }
 
 .round-pill[aria-pressed='true'] {
-  border-color: var(--accent);
+  border-color: var(--cat, var(--accent));
   background: var(--bg-raised-2);
-  color: var(--accent);
+  color: var(--cat-text, var(--accent-text));
 }
 
 /* ---------------------------------------------------------------- Endstand */

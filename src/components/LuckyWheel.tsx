@@ -13,15 +13,15 @@ interface Props {
   onSpin: (spin: WheelSpin) => void;
 }
 
-/** Farben der Felder, werden bei mehr Feldern zyklisch wiederholt. */
+/** Farben der Felder aus der Palette des Originalspiels, zyklisch wiederholt. */
 const SEGMENT_STYLES = [
-  { fill: '#f5b301', ink: '#10131a' },
-  { fill: '#2b3242', ink: '#eef2f8' },
-  { fill: '#ef8a3c', ink: '#10131a' },
-  { fill: '#232937', ink: '#eef2f8' },
-  { fill: '#f5b301', ink: '#10131a' },
-  { fill: '#2b3242', ink: '#eef2f8' },
-  { fill: '#ef8a3c', ink: '#10131a' },
+  { fill: '#f57623', ink: '#ffffff' },
+  { fill: '#35bde3', ink: '#14181f' },
+  { fill: '#e23c8e', ink: '#ffffff' },
+  { fill: '#ffc531', ink: '#14181f' },
+  { fill: '#1f95a6', ink: '#ffffff' },
+  { fill: '#8b4399', ink: '#ffffff' },
+  { fill: '#0f6bc8', ink: '#ffffff' },
 ];
 
 const CENTER = 120;
@@ -66,7 +66,7 @@ export function LuckyWheel({ wheel, spin, onSpin }: Props) {
                 <path
                   d={`M ${CENTER} ${CENTER} L ${x0} ${y0} A ${RADIUS} ${RADIUS} 0 ${largeArc} 1 ${x1} ${y1} Z`}
                   fill={style.fill}
-                  stroke="#10131a"
+                  stroke="#ffffff"
                   strokeWidth="2"
                 />
                 <text
@@ -84,7 +84,7 @@ export function LuckyWheel({ wheel, spin, onSpin }: Props) {
               </g>
             );
           })}
-          <circle cx={CENTER} cy={CENTER} r="18" fill="#10131a" stroke="#f5b301" strokeWidth="3" />
+          <circle cx={CENTER} cy={CENTER} r="18" fill="#ffffff" stroke="#14181f" strokeWidth="3" />
         </svg>
       </div>
 

@@ -3,7 +3,7 @@ import { CATEGORY_INFO, type Challenge } from '../game/types';
 export function ChallengeCard({ challenge }: { challenge: Challenge }) {
   const info = CATEGORY_INFO[challenge.category];
   return (
-    <div className="challenge-card">
+    <div className={`challenge-card cat-${challenge.category.toLowerCase()}`}>
       <span className="cc-cat">
         {info.label} - {info.short}
       </span>

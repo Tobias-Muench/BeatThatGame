@@ -146,7 +146,7 @@ export function RoundScreen({ state, dispatch, canUndo, onUndo, onQuit }: Props)
                   <button
                     key={c}
                     type="button"
-                    className="round-pill"
+                    className={`round-pill cat-${c.toLowerCase()}`}
                     style={{ minWidth: 130 }}
                     aria-pressed={filter === c}
                     onClick={() => setFilter(c)}
