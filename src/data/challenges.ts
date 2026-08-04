@@ -138,6 +138,17 @@ export const challenges: Challenge[] = [
       'Legt das T-Shirt anschließend auf die Waage: Gewonnen hat, wer mit dem Gesamtgewicht am nächsten am ausgelosten Zielgewicht liegt.',
     material: ['T-Shirt pro Spieler (130 g)', '2 Eimer', 'Waage'],
   },
+  {
+    id: 'duell-03',
+    category: 'DUELL',
+    title: 'Distanz schätzen',
+    text:
+      'Das Zufallsrad bestimmt die Distanz. ' +
+      'Legt einen Startpunkt fest und klärt mit Schnick-Schnack-Schnuck, wer zuerst markieren muss. ' +
+      'Geht die Strecke nacheinander ab und setzt eure Markierung dorthin, wo ihr die Entfernung vermutet. ' +
+      'Anschließend wird nachgemessen: Gewonnen hat, wessen Markierung näher an der ausgelosten Distanz liegt.',
+    material: ['2 Markierungen', 'Maßband'],
+  },
 ];
 
 /** Meldet doppelte IDs oder leere Texte in der Konsole - hilft beim Nachtragen. */

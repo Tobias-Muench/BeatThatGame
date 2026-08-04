@@ -40,6 +40,12 @@ export const wheels: Record<string, Wheel> = {
     unit: 'g',
     values: [300, 325, 350, 400, 425, 450, 500],
   },
+  'duell-03': {
+    title: 'Distanz drehen',
+    hint: 'Vor dem Duell einmal drehen. Beide schätzen dieselbe Distanz.',
+    unit: 'm',
+    values: [8, 9, 10, 11, 12, 13, 14],
+  },
 };
 
 /** Liefert das Rad einer Challenge - oder undefined, wenn sie keins hat. */
