@@ -188,6 +188,7 @@ export function RoundScreen({ state, dispatch, canUndo, onUndo, onQuit }: Props)
             players={state.players}
             groups={round.groups}
             jokerId={round.jokerId}
+            starterId={round.starterId}
             onChange={(groups) => dispatch({ type: 'SET_GROUPS', groups })}
           />
         )}
@@ -419,7 +420,7 @@ function phaseHint(phase: RoundPhase, state: GameState, needsGroups: boolean): s
         ? 'Karte vorlesen und die Kategorie antippen.'
         : 'Challenge ziehen und laut vorlesen.';
     case 'groups':
-      return 'Zwei Spieler antippen, um ein Paar zu bilden.';
+      return 'Reihum ab dem Startspieler: Wer dran ist, tippt seinen Partner an.';
     case 'betting':
       return needsGroups
         ? 'Jeder setzt verdeckt einen Chip - auch der Joker. Danach aufdecken.'

@@ -766,6 +766,24 @@ button {
   background: var(--bg-raised-2);
 }
 
+/* Die Person, die gerade einen Partner aussucht - fest vorausgewählt. */
+.pool-player.is-chooser {
+  border-color: var(--accent);
+  background: rgba(239, 108, 26, 0.1);
+  cursor: default;
+}
+
+.chooser-badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .joker-note {
   padding: 14px 18px;
   border-radius: var(--radius);

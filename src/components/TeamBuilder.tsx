@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { autoPairs, nextId } from '../game/reducer';
 import { PLAYER_COLORS, type Group, type Player } from '../game/types';
 
@@ -6,36 +5,37 @@ interface Props {
   players: Player[];
   groups: Group[];
   jokerId: string | null;
+  /** Startspieler der Runde - er sucht sich als Erster einen Partner. */
+  starterId: string;
   onChange: (groups: Group[]) => void;
 }
 
 /**
- * Paare bilden: zwei Spieler nacheinander antippen. Bei ungerader Spielerzahl
- * bleibt genau einer als Joker übrig - er setzt trotzdem und wählt seine
- * Gruppe erst nach dem Spielen der Paare.
+ * Reihenfolge ab dem Startspieler: Er wählt zuerst, danach geht es reihum
+ * weiter zur nächsten Person, die noch kein Paar hat.
  */
-export function TeamBuilder({ players, groups, jokerId, onChange }: Props) {
-  const [pending, setPending] = useState<string | null>(null);
+function turnOrder(players: Player[], starterId: string): Player[] {
+  const start = players.findIndex((p) => p.id === starterId);
+  if (start < 0) return players;
+  return [...players.slice(start), ...players.slice(0, start)];
+}
 
+/**
+ * Paare bilden: Der Startspieler ist automatisch vorausgewählt und tippt
+ * seinen Partner an. Danach ist reihum die nächste Person ohne Paar dran.
+ * Bei ungerader Spielerzahl bleibt genau einer übrig - er ist Joker, setzt
+ * trotzdem einen Chip und wählt seine Gruppe erst nach dem Spielen.
+ */
+export function TeamBuilder({ players, groups, jokerId, starterId, onChange }: Props) {
   const assigned = new Set(groups.flatMap((g) => g.memberIds));
-  const pool = players.filter((p) => !assigned.has(p.id));
+  const order = turnOrder(players, starterId);
+  // Wer gerade dran ist: die erste Person der Reihenfolge ohne Paar.
+  const chooser = order.find((p) => !assigned.has(p.id)) ?? null;
+  const options = order.filter((p) => !assigned.has(p.id) && p.id !== chooser?.id);
 
-  function tapPoolPlayer(id: string) {
-    if (pending === null) {
-      setPending(id);
-      return;
-    }
-    if (pending === id) {
-      setPending(null);
-      return;
-    }
-    onChange([...groups, { id: nextId('g'), memberIds: [pending, id] }]);
-    setPending(null);
-  }
-
-  function dissolve(groupId: string) {
-    onChange(groups.filter((g) => g.id !== groupId));
-    setPending(null);
+  function pairWith(partnerId: string) {
+    if (!chooser) return;
+    onChange([...groups, { id: nextId('g'), memberIds: [chooser.id, partnerId] }]);
   }
 
   const joker = jokerId ? players.find((p) => p.id === jokerId) : null;
@@ -43,19 +43,23 @@ export function TeamBuilder({ players, groups, jokerId, onChange }: Props) {
   return (
     <>
       <div className="scroll">
-        {pool.length > 0 && (
+        {chooser && options.length > 0 && (
           <>
             <p className="section-title" style={{ marginBottom: 10 }}>
-              Noch ohne Paar - zwei Spieler antippen
+              {chooser.name} ist dran - Partner antippen
             </p>
             <div className="pool-grid" style={{ marginBottom: 18 }}>
-              {pool.map((p) => (
+              <div className="pool-player is-chooser" aria-current="step">
+                <span className="dot" style={{ background: PLAYER_COLORS[chooser.colorIndex] }} />
+                <span style={{ flex: 1 }}>{chooser.name}</span>
+                <span className="chooser-badge">wählt</span>
+              </div>
+              {options.map((p) => (
                 <button
                   key={p.id}
                   type="button"
                   className="pool-player"
-                  aria-pressed={pending === p.id}
-                  onClick={() => tapPoolPlayer(p.id)}
+                  onClick={() => pairWith(p.id)}
                 >
                   <span className="dot" style={{ background: PLAYER_COLORS[p.colorIndex] }} />
                   {p.name}
@@ -84,7 +88,7 @@ export function TeamBuilder({ players, groups, jokerId, onChange }: Props) {
                   type="button"
                   className="group-card"
                   style={{ textAlign: 'left' }}
-                  onClick={() => dissolve(g.id)}
+                  onClick={() => onChange(groups.filter((x) => x.id !== g.id))}
                 >
                   <span className="group-title">Paar {i + 1}</span>
                   <div className="group-members">
@@ -110,23 +114,13 @@ export function TeamBuilder({ players, groups, jokerId, onChange }: Props) {
       </div>
 
       <div style={{ display: 'flex', gap: 12, paddingBottom: 4 }}>
-        <button
-          type="button"
-          className="btn btn-sm"
-          onClick={() => {
-            onChange(autoPairs(players));
-            setPending(null);
-          }}
-        >
+        <button type="button" className="btn btn-sm" onClick={() => onChange(autoPairs(players))}>
           Zufällig zuteilen
         </button>
         <button
           type="button"
           className="btn btn-sm btn-ghost"
-          onClick={() => {
-            onChange([]);
-            setPending(null);
-          }}
+          onClick={() => onChange([])}
           disabled={groups.length === 0}
         >
           Zurücksetzen
