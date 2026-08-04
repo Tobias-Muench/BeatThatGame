@@ -77,10 +77,14 @@ export const challenges: Challenge[] = [
   {
     id: 'zweigespann-01',
     category: 'ZWEIGESPANN',
-    title: 'PLATZHALTER Zweigespann 1',
-    text: 'Hier den Text deiner Zweigespann-Karte eintragen.',
-    timeLimitSec: 60,
-    material: ['Essstäbchen'],
+    title: 'Blind-Navigation',
+    text:
+      'Einigt euch im Team: Einer stellt sich oben auf die Plattform des Pools und navigiert, der andere sammelt. ' +
+      'Der Sammler stellt sich unten an der Wiese auf und bekommt die Augen verbunden. ' +
+      'Auf der unteren Wiese liegen vier Holzklötzchen, die er blind einsammeln muss, die Reihenfolge ist egal. ' +
+      'Er sieht nichts und darf sich nur auf die Ansagen des Navigators verlassen. ' +
+      'Gewonnen hat das Team, das die vier Klötzchen am schnellsten zusammen hat.',
+    material: ['4 Holzklötzchen', 'Augenbinde'],
   },
   {
     id: 'zweigespann-02',
