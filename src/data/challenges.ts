@@ -83,8 +83,13 @@ export const challenges: Challenge[] = [
   {
     id: 'meisterschaft-02',
     category: 'MEISTERSCHAFT',
-    title: 'PLATZHALTER Meisterschaft 2',
-    text: 'Hier den Text deiner Meisterschafts-Karte eintragen.',
+    title: 'Poolnudel-Weitwurf',
+    text:
+      'Stellt euch alle oben auf die Poolplattform. ' +
+      'Reihum wirft jeder die Poolnudel von dort hinunter auf die untere Wiese. ' +
+      'Der jeweils weiteste Wurf wird auf der Wiese mit der Markierung festgehalten, dann ist der nächste dran. ' +
+      'Gewonnen hat, wer am weitesten kommt.',
+    material: ['Poolnudel', 'Markierung'],
   },
   {
     id: 'zweigespann-01',
