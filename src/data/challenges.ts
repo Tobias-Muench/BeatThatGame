@@ -59,10 +59,14 @@ export const challenges: Challenge[] = [
   {
     id: 'meisterschaft-01',
     category: 'MEISTERSCHAFT',
-    title: 'PLATZHALTER Meisterschaft 1',
-    text: 'Hier den Text deiner Meisterschafts-Karte eintragen.',
-    timeLimitSec: 45,
-    material: ['Ball'],
+    title: 'Königs-Wurf',
+    text:
+      'Stellt den König, einen großen Holzklotz, in die Mitte der unteren Wiese. ' +
+      'Jeder bekommt einen kleinen Holzklotz und stellt sich mit sechs Metern Abstand im Kreis um den König auf. ' +
+      'Reihum wirft jeder seinen Klotz Richtung König. ' +
+      'Den König zu berühren ist erlaubt, wer ihn umwirft, ist für diese Runde raus. ' +
+      'Gewonnen hat, wessen Klotz am nächsten am König liegt. Liegen mehrere gleich nah dran, gewinnen sie gemeinsam.',
+    material: ['Großer Holzklotz (König)', 'Kleiner Holzklotz pro Spieler'],
   },
   {
     id: 'meisterschaft-02',
