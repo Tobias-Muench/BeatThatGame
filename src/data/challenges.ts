@@ -89,8 +89,14 @@ export const challenges: Challenge[] = [
   {
     id: 'zweigespann-02',
     category: 'ZWEIGESPANN',
-    title: 'PLATZHALTER Zweigespann 2',
-    text: 'Hier den Text deiner Zweigespann-Karte eintragen.',
+    title: 'Regenbogen-Rückprall',
+    text:
+      'Bestimmt in eurem Team einen Werfer und ein Brett. ' +
+      'Der Werfer nimmt einen kleinen Softshellball und stellt sich ans Ende des Pools. ' +
+      'Das Brett geht mit dem Regenbogenbrett in der Hand in den Pool und stellt sich in die Mitte. ' +
+      'Der Werfer wirft den Ball Richtung Brett, das ihn mit dem Regenbogenbrett zurückprallen lässt, und fängt ihn wieder. ' +
+      'Ihr habt nur einen Versuch: Klappt es, ist die Challenge geschafft, sonst gibt es keine Punkte.',
+    material: ['Kleiner Softshellball', 'Regenbogenbrett'],
   },
   {
     id: 'duell-01',
