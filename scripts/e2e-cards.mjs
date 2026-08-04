@@ -1,4 +1,5 @@
 // Durchlauf im Modus "Karten am Tisch" mit 3 Spielern (ungerade -> Joker im Duell).
+// Ein Spiel dauert jetzt immer 10 Runden (kein Runden-Picker mehr im Setup).
 import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
 
@@ -37,13 +38,36 @@ for (let i = 0; i < NAMES.length; i++) {
   await page.getByLabel(`Name Spieler ${i + 1}`).fill(NAMES[i]);
 }
 await click('Karten am Tisch');
-await page.getByRole('button', { name: '5', exact: true }).click();
 await click('Spiel starten');
 await page.waitForSelector('.topbar-round');
 
-const PLAN = ['Solo', 'Duell', 'Meisterschaft', 'Zweigespann', 'Solo'];
+// Genau eine Duell-Runde, der Rest sind Kategorien, in denen in diesem Test
+// immer alle drei gewinnen - damit bleibt die Endsumme trotz der jetzt
+// zufaelligen Paarbildung (und damit zufaelligen Joker-Identitaet) exakt
+// vorhersagbar: nur die eine Duell-Runde erzeugt Verlierer.
+const TOTAL_ROUNDS = 10;
+const PLAN = [
+  'Solo',
+  'Duell',
+  'Meisterschaft',
+  'Zweigespann',
+  'Solo',
+  'Meisterschaft',
+  'Zweigespann',
+  'Solo',
+  'Solo',
+  'Solo',
+];
 
-for (let round = 0; round < 5; round++) {
+for (let round = 0; round < TOTAL_ROUNDS; round++) {
+  // Ab Runde 2 blendet die App automatisch die Uebersicht ein - schliessen,
+  // bevor es weitergeht.
+  if (round > 0) {
+    await page.waitForSelector('.overlay-panel');
+    await page.locator('.overlay-head button', { hasText: 'Schließen' }).click();
+    await page.waitForSelector('.overlay-panel', { state: 'detached' });
+  }
+
   const category = PLAN[round];
 
   // Modus "Karten": nur die Kategorie antippen, kein Challenge-Text in der App.
@@ -85,19 +109,21 @@ for (let round = 0; round < 5; round++) {
     const c = await rc.count();
     for (let i = 0; i < c; i++) await rc.nth(i).locator('.result-btn.ok').click();
   }
-  await click(round === 4 ? 'Spiel auswerten' : 'Runde abschließen');
+  await click(round === TOTAL_ROUNDS - 1 ? 'Spiel auswerten' : 'Runde abschließen');
 }
 
 await page.waitForSelector('.podium h1');
 await page.screenshot({ path: `${SHOTS}/02-endstand.png` });
 
-// Jeder setzt immer einen Einer-Chip. Vier Runden (Solo, Meisterschaft, Zweigespann,
-// Solo) schaffen alle drei; im Duell gewinnt bei drei Spielern nur einer.
-// Erwartung also: 5 / 4 / 4 Punkte und insgesamt 2 Punkte an die Bank.
+// Jeder setzt in jeder Runde den kleinsten noch vorhandenen Chip - ueber
+// 10 Runden also erst fuenf Einer, dann drei Dreier, dann zwei Fuenfer
+// (1*5 + 3*3 + 5*2 = 24 Punkte "Basiswert" bei Erfolg). Nur die eine
+// Duell-Runde (Chipwert 1) hat einen Sieger und zwei Verlierer: Erwartung
+// also 24 / 23 / 23 Punkte und insgesamt 2 Punkte an die Bank.
 const points = await page.locator('.standing-row .stat-value').allInnerTexts();
 const banked = points.filter((_, i) => i % 2 === 0).map(Number);
-if (JSON.stringify(banked) !== JSON.stringify([5, 4, 4])) {
-  problems.push(`Erwartet [5,4,4] Punkte, gezählt: ${JSON.stringify(banked)}`);
+if (JSON.stringify(banked) !== JSON.stringify([24, 23, 23])) {
+  problems.push(`Erwartet [24,23,23] Punkte, gezählt: ${JSON.stringify(banked)}`);
 }
 const lostTexts = await page.locator('.standing-row .budget-cell .stat-label').allInnerTexts();
 const lostSum = lostTexts.map((t) => Number(t.replace(/\D+/g, ''))).reduce((a, b) => a + b, 0);
@@ -105,7 +131,7 @@ if (lostSum !== 2) problems.push(`Erwartet 2 verlorene Punkte insgesamt, gezähl
 
 await browser.close();
 if (problems.length === 0) {
-  console.log('✅ Karten-Modus ohne Beanstandung (5 / 4 / 4 Punkte, 2 an die Bank).');
+  console.log('✅ Karten-Modus ohne Beanstandung (24 / 23 / 23 Punkte, 2 an die Bank).');
 } else {
   console.log(`❌ ${problems.length} Problem(e):`);
   for (const p of problems) console.log(`   - ${p}`);

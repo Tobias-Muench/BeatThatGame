@@ -6,10 +6,8 @@ export type ChipValue = 1 | 3 | 5;
 /** Startausstattung: 5x1 + 3x3 + 2x5 = 10 Chips = maximal 24 Punkte. */
 export const START_CHIPS: readonly ChipValue[] = [1, 1, 1, 1, 1, 3, 3, 3, 5, 5];
 
-/** Anzahl Runden eines vollständigen Spiels (= Anzahl Chips). */
+/** Anzahl Runden eines vollständigen Spiels - fest, entspricht der Chipanzahl. */
 export const DEFAULT_ROUNDS = 10;
-export const MIN_ROUNDS = 5;
-export const MAX_ROUNDS = START_CHIPS.length;
 
 export const MIN_PLAYERS = 2;
 export const MAX_PLAYERS = 16;

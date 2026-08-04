@@ -9,25 +9,35 @@ offline, ohne Konto und ohne Server.
 - **Zwei Betriebsarten**
   - *Karten am Tisch* – ihr zieht die Challenges wie gewohnt von den echten Karten, die App fragt
     pro Runde nur nach der Kategorie.
-  - *Vorbereitet in der App* – die hinterlegten Challenges werden pro Runde gezogen und groß
-    angezeigt.
+  - *Vorbereitet in der App* – die App zieht pro Runde selbst eine zufällige Challenge aus allen
+    Kategorien und zeigt sie groß an. Oben ist auf einen Blick zu sehen, wie viele Challenges je
+    Kategorie noch im Pool sind.
 - **Zufallsrad für Challenges, die eine ausgeloste Zahl brauchen** – erscheint automatisch neben
   der Challenge und kann innerhalb einer Runde beliebig oft neu gedreht werden.
-- **2 bis 16 Spieler**, Namen frei wählbar, 5 bis 10 Runden.
+- **Countdown-Timer für Challenges mit Zeitlimit am Tisch** – z. B. beim Dosenturm. Erscheint
+  automatisch, lässt sich starten und beliebig oft neu starten.
+- **2 bis 16 Spieler**, Namen frei wählbar. Die Reihenfolge, wer beginnt und danach reihum dran
+  ist, wird beim Spielstart ausgewürfelt – unabhängig davon, in welcher Reihenfolge die Namen
+  eingetragen wurden – und gilt dann für das ganze Spiel.
+- **Immer 10 Runden** – genau so viele wie Chips pro Spieler.
 - **Chip-Verwaltung nach Originalregel**: jeder startet mit 5×1 + 3×3 + 2×5 Chips. Jeder Chip ist
   genau einmal einsetzbar.
 - **Alle vier Kategorien**: Solo, Meisterschaft, Zweigespann, Duell – inklusive Paarbildung und
   der Joker-Regel bei ungerader Spielerzahl.
-- **Übersicht auf Knopfdruck**: Punktestand, verbleibende Chips samt Restbudget, maximal noch
-  erreichbarer Endstand und das komplette Rundenprotokoll.
+- **Übersicht** auf Knopfdruck jederzeit, und automatisch nach jeder abgeschlossenen Runde, bevor
+  die nächste beginnt: Punktestand, verbleibende Chips samt Restbudget, maximal noch erreichbarer
+  Endstand und das komplette Rundenprotokoll.
 - **Zurück-Knopf** für jeden Schritt, falls sich jemand vertippt.
 - **Spielstand bleibt auf dem Gerät** – App schließen und später fortsetzen funktioniert.
 
 ## Spielregeln, wie die App sie umsetzt
 
 1. Jeder Spieler bekommt 10 Chips: fünf Einer, drei Dreier, zwei Fünfer (maximal 24 Punkte).
-2. Der Startspieler wechselt jede Runde reihum und wird oben angezeigt.
-3. Die Challenge wird gezogen und vorgelesen.
+2. Die Startreihenfolge wird beim Spielstart ausgewürfelt. Der Startspieler wechselt danach jede
+   Runde reihum in dieser Reihenfolge und wird oben angezeigt.
+3. Im Modus *Vorbereitet in der App* zieht die App automatisch eine zufällige Challenge; im Modus
+   *Karten am Tisch* wird die gezogene Karte vorgelesen. Nach jeder abgeschlossenen Runde zeigt
+   die App erst den aktuellen Punktestand, bevor die nächste beginnt.
 4. Bei **Zweigespann** und **Duell** werden zuerst Paare gebildet – reihum ab dem Startspieler:
    Wer dran ist, ist vorausgewählt und tippt nur noch seinen Partner an. Bleibt bei ungerader
    Spielerzahl jemand übrig, ist diese Person **Joker** und setzt ganz normal ihren Chip mit.
@@ -81,8 +91,9 @@ drei Duell. Hänge beliebig viele weitere an:
 }
 ```
 
-Es muss nicht in jeder Kategorie gleich viele geben – die App zieht pro Runde zufällig aus allen
-noch nicht gespielten Challenges, optional auf eine Kategorie gefiltert.
+Es muss nicht in jeder Kategorie gleich viele geben – die App zieht pro Runde einfach zufällig
+aus allen noch nicht gespielten Challenges aller Kategorien. Oben in der Challenge-Phase steht
+immer, wie viele je Kategorie noch übrig sind.
 
 Danach `npm run build` ausführen und die App neu bereitstellen. Doppelte IDs oder leere Texte
 meldet die App beim Start in der Browser-Konsole.
@@ -106,6 +117,19 @@ Taucht eine Challenge-ID dort auf, zeigt die App das Rad automatisch unter der K
 Challenge-, Einsatz- und Auswertungsphase, so dass pro Paar neu gedreht werden kann. Das Ergebnis
 bleibt über die Phasen einer Runde stehen und verfällt, sobald eine andere Challenge gezogen wird.
 Die Anzahl der Felder ist frei; die Farben werden zyklisch vergeben.
+
+## Timer
+
+Challenges mit Zeitlimit am Tisch – etwa der Dosenturm mit einer Minute Bauzeit – können einen
+Countdown bekommen. Er steht in **`src/data/timers.ts`**, ebenfalls gebunden an die Challenge-ID:
+
+```ts
+'solo-04': { label: 'Bauzeit', seconds: 45 }
+```
+
+Taucht eine Challenge-ID dort auf, erscheint der Countdown automatisch unter der Karte. Ein Tipp
+auf *Start* zählt die hinterlegte Zeit herunter; ist die Zeit abgelaufen, färbt er sich rot. Der
+Knopf heißt danach *Neu starten* und setzt die Uhr beliebig oft neu auf den vollen Wert zurück.
 
 ## Entwicklung
 
@@ -138,12 +162,13 @@ npm run test:e2e
 | `src/game/storage.ts` | Spielstand im `localStorage` |
 | `src/data/challenges.ts` | **hier kommen deine Challenges rein** |
 | `src/data/wheels.ts` | Zufallsräder, pro Challenge-ID |
+| `src/data/timers.ts` | Countdown-Timer, pro Challenge-ID |
 | `src/screens/` | Start, Setup, Runde, Endstand |
-| `src/components/` | Chips, Spielerkarten, Paarbildung, Auswertung, Übersicht, Zufallsrad |
+| `src/components/` | Chips, Spielerkarten, Paarbildung, Auswertung, Übersicht, Zufallsrad, Timer |
 | `src/styles.css` | Farbtokens und Layout |
 
 Die Spiellogik ist bewusst vollständig von der Oberfläche getrennt und in
-`src/game/reducer.test.ts` mit 25 Tests abgedeckt; `src/data/wheels.test.ts` prüft mit fünf
+`src/game/reducer.test.ts` mit 26 Tests abgedeckt; `src/data/wheels.test.ts` prüft mit fünf
 weiteren, dass jedes Radfeld sauber unter dem Zeiger landet.
 
 ### Farben
@@ -152,4 +177,5 @@ Die Oberfläche übernimmt die Farbwelt des Originalspiels: oranger Akzent wie d
 weiße Karten auf hellem Grund und die vier Kategoriefarben der Kartenleisten – Solo orange,
 Meisterschaft pink, Zweigespann türkis, Duell lila. Alle Werte stehen als CSS-Variablen im
 `:root`-Block von `src/styles.css`; `--cat-*` färbt Rand und Badge der Challenge-Karte, die
-Kategorie-Kacheln und die Filterknöpfe.
+Kategorie-Kacheln im Modus "Karten am Tisch" und die Chips, die anzeigen, wie viele Challenges
+je Kategorie noch übrig sind.

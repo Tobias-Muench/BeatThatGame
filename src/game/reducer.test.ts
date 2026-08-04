@@ -15,12 +15,22 @@ function run(state: GameState, ...actions: GameAction[]): GameState {
   return actions.reduce(gameReducer, state);
 }
 
+/**
+ * `createGame` mischt die Spielreihenfolge per Fisher-Yates. Ein Zufallswert
+ * knapp unter 1 lässt jeden Tausch auf sich selbst fallen (`floor((1-ε) * (i+1)) === i`)
+ * - die Testspieler bleiben also in Eingabereihenfolge, ohne dass jeder
+ * Test die echte Zufallsreihenfolge kennen müsste. Die Durchmischung selbst
+ * hat einen eigenen Test mit einer gezielt gesteuerten Zufallsfunktion.
+ */
+const NO_SHUFFLE = () => 1 - 1e-9;
+
 function newGame(count: number, rounds = DEFAULT_ROUNDS) {
   const names = ['Anna', 'Ben', 'Cem', 'Dana', 'Eli', 'Finn', 'Gina', 'Hans'].slice(0, count);
   return createGame(
     names.map((name) => ({ name })),
     'cards',
     rounds,
+    NO_SHUFFLE,
   );
 }
 
@@ -68,6 +78,16 @@ describe('Spielaufbau', () => {
   it('vergibt eindeutige IDs', () => {
     const ids = new Set(Array.from({ length: 50 }, () => nextId('x')));
     expect(ids.size).toBe(50);
+  });
+
+  it('würfelt die Spielreihenfolge aus, statt die Eingabereihenfolge zu übernehmen', () => {
+    const names = ['Anna', 'Ben', 'Cem', 'Dana'].map((name) => ({ name }));
+    const state = createGame(names, 'cards', DEFAULT_ROUNDS, () => 0);
+    expect(state.players.map((p) => p.name)).toEqual(['Ben', 'Cem', 'Dana', 'Anna']);
+    // Alle vier bleiben erhalten, nur die Reihenfolge ändert sich.
+    expect(state.players.map((p) => p.name).sort()).toEqual(['Anna', 'Ben', 'Cem', 'Dana']);
+    // Der erste in der gewürfelten Reihenfolge eröffnet die erste Runde.
+    expect(currentRound(state).starterId).toBe(state.players[0].id);
   });
 });
 

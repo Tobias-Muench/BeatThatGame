@@ -76,8 +76,13 @@ export function createGame(
   players: NewPlayerInput[],
   mode: GameMode,
   totalRounds: number = DEFAULT_ROUNDS,
+  random: () => number = Math.random,
 ): GameState {
-  const built: Player[] = players.map((p, i) => ({
+  // Die Spielreihenfolge wird ausgewürfelt, nicht aus der Eingabereihenfolge
+  // übernommen - sie bestimmt sowohl die Startspieler-Rotation als auch die
+  // Sitzordnung in jeder Spieler-Liste der App.
+  const shuffledInputs = shuffle(players, random);
+  const built: Player[] = shuffledInputs.map((p, i) => ({
     id: nextId('p'),
     name: p.name.trim() || `Spieler ${i + 1}`,
     colorIndex: i % PLAYER_COLORS.length,
@@ -143,13 +148,19 @@ function jokerFromGroups(players: Player[], groups: Group[]): string | null {
   return rest.length === 1 ? rest[0].id : null;
 }
 
-/** Bildet zufällige Paare; bei ungerader Spielerzahl bleibt einer als Joker übrig. */
-export function autoPairs(players: Player[], random: () => number = Math.random): Group[] {
-  const shuffled = [...players];
+/** Mischt eine Liste (Fisher-Yates), ohne das Original zu verändern. */
+function shuffle<T>(items: readonly T[], random: () => number = Math.random): T[] {
+  const shuffled = [...items];
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(random() * (i + 1));
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
+  return shuffled;
+}
+
+/** Bildet zufällige Paare; bei ungerader Spielerzahl bleibt einer als Joker übrig. */
+export function autoPairs(players: Player[], random: () => number = Math.random): Group[] {
+  const shuffled = shuffle(players, random);
   const groups: Group[] = [];
   for (let i = 0; i + 1 < shuffled.length; i += 2) {
     groups.push({ id: nextId('g'), memberIds: [shuffled[i].id, shuffled[i + 1].id] });

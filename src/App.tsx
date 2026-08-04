@@ -60,12 +60,11 @@ export default function App() {
         <SetupScreen
           initialNames={loadRoster()}
           onCancel={() => setEntry('start')}
-          onStart={(names, mode, rounds) =>
+          onStart={(names, mode) =>
             dispatch({
               type: 'NEW_GAME',
               players: names.map((name) => ({ name })),
               mode,
-              totalRounds: rounds,
             })
           }
         />

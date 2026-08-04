@@ -1,13 +1,15 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { CategoryPicker } from '../components/CategoryPicker';
 import { ChallengeCard } from '../components/ChallengeCard';
 import { ChipPicker } from '../components/ChipPicker';
+import { CountdownTimer } from '../components/CountdownTimer';
 import { LuckyWheel, type WheelSpin } from '../components/LuckyWheel';
 import { OverviewPanel } from '../components/OverviewPanel';
 import { PlayerCard } from '../components/PlayerCard';
 import { ResolvePanel } from '../components/ResolvePanel';
 import { TeamBuilder } from '../components/TeamBuilder';
 import { availableChallenges, challengeById, drawChallenge } from '../data/challenges';
+import { timerFor } from '../data/timers';
 import { wheelFor } from '../data/wheels';
 import {
   currentRound,
@@ -21,7 +23,6 @@ import {
   CATEGORIES,
   CATEGORY_INFO,
   PLAYER_COLORS,
-  type Category,
   type GameState,
   type Player,
   type Round,
@@ -45,7 +46,6 @@ const PHASE_TITLE: Record<RoundPhase, string> = {
 
 export function RoundScreen({ state, dispatch, canUndo, onUndo, onQuit }: Props) {
   const [showOverview, setShowOverview] = useState(false);
-  const [filter, setFilter] = useState<Category | null>(null);
   // Letzter Dreh samt Challenge-ID: So verfaellt das Ergebnis automatisch,
   // sobald eine andere Challenge gezogen wird, bleibt aber ueber die Phasen
   // einer Runde hinweg stehen.
@@ -53,6 +53,9 @@ export function RoundScreen({ state, dispatch, canUndo, onUndo, onQuit }: Props)
   // Runde, deren Einsätze bereits aufgedeckt sind. Bis dahin sieht man nur,
   // *dass* jemand gesetzt hat, nicht wie viel.
   const [revealedRound, setRevealedRound] = useState<number | null>(null);
+  // Fuer welche Runde die Uebersicht schon automatisch eingeblendet wurde -
+  // verhindert, dass sie beim naechsten Rerender erneut aufploppt.
+  const [autoOverviewShownFor, setAutoOverviewShownFor] = useState<number | null>(null);
 
   const round = currentRound(state);
   const starter = state.players.find((p) => p.id === round.starterId);
@@ -70,6 +73,12 @@ export function RoundScreen({ state, dispatch, canUndo, onUndo, onQuit }: Props)
       />
     ) : null;
 
+  const timer = timerFor(challenge?.id);
+  const timerBlock =
+    timer && challenge ? (
+      <CountdownTimer key={challenge.id} label={timer.label} seconds={timer.seconds} />
+    ) : null;
+
   // Nur die tatsächlich vorkommenden Phasen als Fortschrittspunkte anzeigen.
   const phases: RoundPhase[] = ['challenge'];
   if (needsGroups) phases.push('groups');
@@ -77,17 +86,39 @@ export function RoundScreen({ state, dispatch, canUndo, onUndo, onQuit }: Props)
   phases.push('resolve');
   const phaseIndex = phases.indexOf(round.phase);
 
+  const missingBets = playersWithoutBet(state);
+  const missingResults = playersWithoutResult(state);
+  const groupCheck = validateGroups(state.players, round.groups);
+  const betsRevealed = revealedRound === round.index;
+  const poolLeft = availableChallenges(state.usedChallengeIds, null).length;
+  const remainingByCategory = CATEGORIES.map((c) => ({
+    category: c,
+    count: availableChallenges(state.usedChallengeIds, c).length,
+  }));
+
   function drawNew() {
-    const drawn = drawChallenge(state.usedChallengeIds, filter);
+    const drawn = drawChallenge(state.usedChallengeIds, null);
     if (!drawn) return;
     dispatch({ type: 'SET_CHALLENGE', challengeId: drawn.id, category: drawn.category });
   }
 
-  const betsRevealed = revealedRound === round.index;
-  const missingBets = playersWithoutBet(state);
-  const missingResults = playersWithoutResult(state);
-  const groupCheck = validateGroups(state.players, round.groups);
-  const poolLeft = availableChallenges(state.usedChallengeIds, filter).length;
+  // Im Modus "prepared" wird die Challenge automatisch gezogen - keine
+  // Kategorie-Auswahl mehr, es kommt einfach die naechste zufaellige.
+  useEffect(() => {
+    if (state.mode === 'prepared' && round.phase === 'challenge' && !round.challengeId) {
+      const drawn = drawChallenge(state.usedChallengeIds, null);
+      if (drawn) dispatch({ type: 'SET_CHALLENGE', challengeId: drawn.id, category: drawn.category });
+    }
+  }, [state.mode, round.phase, round.challengeId, state.usedChallengeIds, dispatch]);
+
+  // Nach jeder abgeschlossenen Runde erst den aktuellen Punktestand zeigen,
+  // bevor es mit der naechsten Challenge weitergeht.
+  useEffect(() => {
+    if (round.index > 0 && autoOverviewShownFor !== round.index) {
+      setShowOverview(true);
+      setAutoOverviewShownFor(round.index);
+    }
+  }, [round.index, autoOverviewShownFor]);
 
   return (
     <div className="screen">
@@ -136,27 +167,11 @@ export function RoundScreen({ state, dispatch, canUndo, onUndo, onQuit }: Props)
             </div>
           ) : (
             <div className="scroll">
-              <div className="rounds-row" style={{ marginBottom: 16 }}>
-                <button
-                  type="button"
-                  className="round-pill"
-                  style={{ minWidth: 90 }}
-                  aria-pressed={filter === null}
-                  onClick={() => setFilter(null)}
-                >
-                  Alle
-                </button>
-                {CATEGORIES.map((c) => (
-                  <button
-                    key={c}
-                    type="button"
-                    className={`round-pill cat-${c.toLowerCase()}`}
-                    style={{ minWidth: 130 }}
-                    aria-pressed={filter === c}
-                    onClick={() => setFilter(c)}
-                  >
-                    {CATEGORY_INFO[c].label}
-                  </button>
+              <div className="cat-remaining-row" style={{ marginBottom: 16 }}>
+                {remainingByCategory.map(({ category: c, count }) => (
+                  <span key={c} className={`cat-remaining-chip cat-${c.toLowerCase()}`}>
+                    {CATEGORY_INFO[c].label} <strong>{count}</strong>
+                  </span>
                 ))}
               </div>
 
@@ -164,20 +179,14 @@ export function RoundScreen({ state, dispatch, canUndo, onUndo, onQuit }: Props)
                 <>
                   <ChallengeCard challenge={challenge} />
                   {wheelBlock}
+                  {timerBlock}
                 </>
               ) : poolLeft === 0 ? (
                 <p className="empty-note">
-                  In dieser Kategorie sind alle hinterlegten Challenges verbraucht. Wähle eine
-                  andere Kategorie oder trage weitere Challenges in{' '}
+                  Alle hinterlegten Challenges sind vergriffen. Trage weitere in{' '}
                   <code>src/data/challenges.ts</code> ein.
                 </p>
-              ) : (
-                <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 0' }}>
-                  <button type="button" className="btn btn-lg btn-primary" onClick={drawNew}>
-                    Challenge ziehen ({poolLeft} übrig)
-                  </button>
-                </div>
-              )}
+              ) : null}
             </div>
           ))}
 
@@ -197,6 +206,7 @@ export function RoundScreen({ state, dispatch, canUndo, onUndo, onQuit }: Props)
               <div style={{ marginBottom: 16 }}>
                 <ChallengeCard challenge={challenge} />
                 {wheelBlock}
+                {timerBlock}
               </div>
             )}
             <div className="player-grid">
@@ -245,6 +255,7 @@ export function RoundScreen({ state, dispatch, canUndo, onUndo, onQuit }: Props)
         {round.phase === 'resolve' && (
           <>
             {wheelBlock}
+            {timerBlock}
             <ResolvePanel players={state.players} round={round} dispatch={dispatch} />
           </>
         )}
@@ -368,7 +379,7 @@ function phaseHint(phase: RoundPhase, state: GameState, needsGroups: boolean): s
     case 'challenge':
       return state.mode === 'cards'
         ? 'Karte vorlesen und die Kategorie antippen.'
-        : 'Challenge ziehen und laut vorlesen.';
+        : 'Automatisch gezogen - vorlesen, bei Bedarf unten neu ziehen.';
     case 'groups':
       return 'Reihum ab dem Startspieler: Wer dran ist, tippt seinen Partner an.';
     case 'betting':

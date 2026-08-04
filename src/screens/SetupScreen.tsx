@@ -1,25 +1,12 @@
 import { useState } from 'react';
 import { saveRoster } from '../game/storage';
-import {
-  DEFAULT_ROUNDS,
-  MAX_PLAYERS,
-  MAX_ROUNDS,
-  MIN_PLAYERS,
-  MIN_ROUNDS,
-  PLAYER_COLORS,
-  type GameMode,
-} from '../game/types';
+import { MAX_PLAYERS, MIN_PLAYERS, PLAYER_COLORS, type GameMode } from '../game/types';
 
 interface Props {
   initialNames: string[];
   onCancel: () => void;
-  onStart: (names: string[], mode: GameMode, rounds: number) => void;
+  onStart: (names: string[], mode: GameMode) => void;
 }
-
-const ROUND_OPTIONS = Array.from(
-  { length: MAX_ROUNDS - MIN_ROUNDS + 1 },
-  (_, i) => MIN_ROUNDS + i,
-);
 
 export function SetupScreen({ initialNames, onCancel, onStart }: Props) {
   const [names, setNames] = useState<string[]>(() => {
@@ -28,7 +15,6 @@ export function SetupScreen({ initialNames, onCancel, onStart }: Props) {
     return base;
   });
   const [mode, setMode] = useState<GameMode>('cards');
-  const [rounds, setRounds] = useState(DEFAULT_ROUNDS);
 
   const filled = names.map((n) => n.trim()).filter(Boolean);
   const canStart = filled.length >= MIN_PLAYERS;
@@ -40,7 +26,7 @@ export function SetupScreen({ initialNames, onCancel, onStart }: Props) {
   function start() {
     if (!canStart) return;
     saveRoster(filled);
-    onStart(filled, mode, rounds);
+    onStart(filled, mode);
   }
 
   return (
@@ -87,6 +73,10 @@ export function SetupScreen({ initialNames, onCancel, onStart }: Props) {
           >
             + Spieler hinzufügen
           </button>
+          <p className="phase-hint" style={{ marginTop: 4 }}>
+            Die Reihenfolge, wer beginnt, wird beim Start ausgewürfelt - unabhängig davon, in
+            welcher Reihenfolge ihr die Namen hier eintragt.
+          </p>
         </div>
 
         <div className="setup-col">
@@ -112,29 +102,13 @@ export function SetupScreen({ initialNames, onCancel, onStart }: Props) {
             >
               <span className="opt-name">Vorbereitet in der App</span>
               <span className="opt-desc">
-                Die hinterlegten Challenges werden pro Runde in die App gezogen und groß
-                angezeigt.
+                Die hinterlegten Challenges werden pro Runde zufällig gezogen und groß angezeigt.
               </span>
             </button>
           </div>
 
-          <h2 style={{ marginTop: 8 }}>Runden</h2>
-          <div className="rounds-row">
-            {ROUND_OPTIONS.map((r) => (
-              <button
-                key={r}
-                type="button"
-                className="round-pill"
-                aria-pressed={rounds === r}
-                onClick={() => setRounds(r)}
-              >
-                {r}
-              </button>
-            ))}
-          </div>
-          <p className="phase-hint">
-            10 Runden entsprechen den 10 Chips des Originalspiels. Kürzere Spiele lassen einfach
-            Chips übrig.
+          <p className="phase-hint" style={{ marginTop: 8 }}>
+            Ein Spiel dauert immer 10 Runden - genau so viele wie Chips pro Spieler.
           </p>
         </div>
       </div>

@@ -374,6 +374,28 @@ button {
   line-height: 1.45;
 }
 
+/* Zeigt auf einen Blick, wie viele Challenges je Kategorie noch im Pool sind. */
+.cat-remaining-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.cat-remaining-chip {
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--bg-raised);
+  border: 2px solid var(--cat, var(--line));
+  color: var(--cat-text, var(--text-dim));
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.cat-remaining-chip strong {
+  color: var(--text);
+  font-weight: 900;
+}
+
 .challenge-meta {
   display: flex;
   gap: 10px;
@@ -479,6 +501,49 @@ button {
 
 .wheel-result-empty {
   font-style: italic;
+}
+
+/* ---------------------------------------------------------------- Timer */
+
+.timer-box {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  gap: 26px;
+  padding: 18px 24px;
+  border-radius: 22px;
+  background: var(--bg-raised);
+  border: 3px solid var(--line);
+  box-shadow: 0 6px 18px rgba(20, 24, 31, 0.08);
+}
+
+.timer-box--done {
+  border-color: var(--danger);
+  background: rgba(208, 51, 47, 0.06);
+}
+
+.timer-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.timer-title {
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.timer-clock {
+  font-size: 2.6rem;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+
+.timer-box--done .timer-clock {
+  color: var(--danger);
 }
 
 .empty-note {
@@ -1242,28 +1307,6 @@ button {
   color: var(--text-dim);
   font-size: 0.93rem;
   line-height: 1.35;
-}
-
-.rounds-row {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.round-pill {
-  min-width: 60px;
-  min-height: 56px;
-  border-radius: 12px;
-  border: 3px solid var(--line);
-  background: var(--bg-raised);
-  font-weight: 800;
-  font-size: 1.05rem;
-}
-
-.round-pill[aria-pressed='true'] {
-  border-color: var(--cat, var(--accent));
-  background: var(--bg-raised-2);
-  color: var(--cat-text, var(--accent-text));
 }
 
 /* ---------------------------------------------------------------- Endstand */

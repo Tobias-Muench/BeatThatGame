@@ -1,4 +1,8 @@
 // Kompletter Spieldurchlauf mit 5 Spielern (ungerade -> Joker) im Modus "Vorbereitet".
+// Die App zieht Challenges jetzt selbst zufaellig (keine Kategoriewahl mehr) und
+// wuerfelt beim Start auch die Spielerreihenfolge aus - die Kategorie pro Runde
+// und die Startspieler-Reihenfolge sind also nicht mehr vorhersagbar und werden
+// hier aus der Seite ausgelesen statt vorab festgelegt.
 import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
 
@@ -51,44 +55,56 @@ for (let i = 0; i < NAMES.length; i++) {
   await page.getByLabel(`Name Spieler ${i + 1}`).fill(NAMES[i]);
 }
 await click('Vorbereitet in der App');
-await page.getByRole('button', { name: '5', exact: true }).click(); // 5 Runden
 await shot('setup');
 await checkNoHorizontalScroll('Setup');
 await click('Spiel starten');
 await page.waitForSelector('.topbar-round');
 
 // ---------------------------------------------------------------- Runden
-const CATEGORIES = ['Duell', 'Zweigespann', 'Solo', 'Meisterschaft', 'Duell'];
+const TOTAL_ROUNDS = 10;
+const starters = [];
+let groupsShotDone = false;
 
-for (let round = 0; round < 5; round++) {
-  const category = CATEGORIES[round];
+for (let round = 0; round < TOTAL_ROUNDS; round++) {
+  // Ab Runde 2 blendet die App automatisch die Uebersicht mit dem
+  // Zwischenstand ein - erst schliessen, dann geht es weiter.
+  if (round > 0) {
+    await page.waitForSelector('.overlay-panel');
+    if (round === 1) {
+      await shot('auto-uebersicht');
+      await checkNoHorizontalScroll('Automatische Übersicht');
+    }
+    await page.locator('.overlay-head button', { hasText: 'Schließen' }).click();
+    await page.waitForSelector('.overlay-panel', { state: 'detached' });
+  }
 
   const heading = await page.locator('.topbar-round').innerText();
   if (!heading.includes(`Runde ${round + 1}`)) {
     problems.push(`Erwartet "Runde ${round + 1}", angezeigt: "${heading.replace(/\n/g, ' ')}"`);
   }
-  const starter = await page.locator('.topbar-starter .name').innerText();
-  if (starter !== NAMES[round % NAMES.length]) {
-    problems.push(`Runde ${round + 1}: Startspieler ${starter}, erwartet ${NAMES[round % NAMES.length]}`);
-  }
+  starters.push(await page.locator('.topbar-starter .name').innerText());
 
-  // Challenge ziehen (Kategorie-Filter setzen, damit der Durchlauf alle vier abdeckt).
-  await page.locator('.round-pill', { hasText: new RegExp(`^${category}$`) }).click();
-  await click('Challenge ziehen');
+  // Challenge wird automatisch gezogen - keine Kategoriewahl mehr.
   await page.waitForSelector('.challenge-card');
   if (round === 0) {
     await shot('challenge-gezogen');
     await checkNoHorizontalScroll('Challenge');
+    // "Neu ziehen" einmal durchspielen, bevor die Kategorie fuer die Runde
+    // final abgelesen wird.
+    await click('Neu ziehen');
+    await page.waitForSelector('.challenge-card');
   }
+  // '.cc-cat' wird per CSS grossgeschrieben - innerText() liefert genau das.
+  const catLabel = (await page.locator('.cc-cat').innerText()).split(' - ')[0].trim();
+  const needsGroups = catLabel === 'DUELL' || catLabel === 'ZWEIGESPANN';
   await click('Weiter');
 
   // Paare bilden, falls die Kategorie es verlangt.
-  const needsGroups = category === 'Duell' || category === 'Zweigespann';
   if (needsGroups) {
     await page.waitForSelector('.pool-grid');
     await click('Zufällig zuteilen');
     await page.waitForSelector('.joker-note');
-    if (round === 0) {
+    if (!groupsShotDone) {
       await shot('paare-mit-joker');
       await checkNoHorizontalScroll('Paare');
     }
@@ -113,14 +129,14 @@ for (let round = 0; round < 5; round++) {
 
   // Auswertung.
   await page.waitForSelector('.result-btn');
-  if (category === 'Solo' || category === 'Meisterschaft') {
+  if (catLabel === 'SOLO' || catLabel === 'MEISTERSCHAFT') {
     const resolveCards = page.locator('.player-card');
     const n = await resolveCards.count();
     for (let i = 0; i < n; i++) {
       // Abwechselnd geschafft / nicht geschafft.
       await resolveCards.nth(i).locator(i % 2 === 0 ? '.result-btn.ok' : '.result-btn.no').click();
     }
-  } else if (category === 'Zweigespann') {
+  } else if (catLabel === 'ZWEIGESPANN') {
     const groups = page.locator('.group-card');
     const n = await groups.count();
     for (let i = 0; i < n; i++) {
@@ -140,9 +156,10 @@ for (let round = 0; round < 5; round++) {
   // zweite Runde - deren erstes Ergebnis zaehlt danach nicht mehr.
   if (needsGroups) {
     await page.waitForSelector('.joker-pick .pool-player');
-    if (round === 0) {
+    if (!groupsShotDone) {
       await shot('joker-waehlt');
       await checkNoHorizontalScroll('Joker-Partnerwahl');
+      groupsShotDone = true;
     }
     await page.locator('.joker-pick .pool-player').first().click();
     await page.waitForSelector('.group-card--joker .result-btn');
@@ -154,7 +171,7 @@ for (let round = 0; round < 5; round++) {
     await checkNoHorizontalScroll('Auswertung');
   }
 
-  // Uebersicht zwischendurch pruefen.
+  // Uebersicht per Knopf zwischendurch pruefen (unabhaengig vom Auto-Einblenden).
   if (round === 2) {
     await click('Übersicht');
     await page.waitForSelector('.overlay-panel');
@@ -168,7 +185,22 @@ for (let round = 0; round < 5; round++) {
     await page.waitForSelector('.overlay-panel', { state: 'detached' });
   }
 
-  await click(round === 4 ? 'Spiel auswerten' : 'Runde abschließen');
+  await click(round === TOTAL_ROUNDS - 1 ? 'Spiel auswerten' : 'Runde abschließen');
+}
+
+// Startspieler-Rotation ist unabhaengig von der (jetzt gewuerfelten) Reihenfolge
+// pruefbar: Sie muss sich nach genau NAMES.length Runden wiederholen, und
+// innerhalb eines vollen Zyklus muss jeder einmal drankommen.
+for (let i = 0; i + NAMES.length < starters.length; i++) {
+  if (starters[i] !== starters[i + NAMES.length]) {
+    problems.push(
+      `Startspieler-Rotation bricht: Runde ${i + 1} war ${starters[i]}, Runde ${i + 1 + NAMES.length} war ${starters[i + NAMES.length]}`,
+    );
+  }
+}
+const firstCycle = new Set(starters.slice(0, NAMES.length));
+if (firstCycle.size !== NAMES.length) {
+  problems.push(`Erste ${NAMES.length} Runden zeigen nicht alle Spieler als Startspieler: ${[...firstCycle]}`);
 }
 
 // ---------------------------------------------------------------- Endstand
@@ -181,7 +213,7 @@ const champion = await page.locator('.podium h1').innerText();
 await click('Rundenprotokoll');
 await page.waitForSelector('.overlay-panel');
 const logged = await page.locator('.log-round').count();
-if (logged !== 5) problems.push(`Protokoll zeigt ${logged} Runden statt 5`);
+if (logged !== TOTAL_ROUNDS) problems.push(`Protokoll zeigt ${logged} Runden statt ${TOTAL_ROUNDS}`);
 await shot('protokoll');
 await page.locator('.overlay-head button').click();
 await page.waitForSelector('.overlay-panel', { state: 'detached' });
