@@ -65,6 +65,7 @@ for (let round = 0; round < 5; round++) {
   const cards = page.locator('.player-card');
   const n = await cards.count();
   for (let i = 0; i < n; i++) await cards.nth(i).locator('.chip').first().click();
+  await click('Einsätze aufdecken');
   await click('Einsätze bestätigen');
 
   if (needsGroups) {

@@ -107,6 +107,8 @@ for (let round = 0; round < 5; round++) {
     await shot('einsaetze');
     await checkNoHorizontalScroll('Einsätze');
   }
+  // Einsaetze liegen verdeckt - erst aufdecken, dann bestaetigen.
+  await click('Einsätze aufdecken');
   await click('Einsätze bestätigen');
 
   // Joker waehlt seine Gruppe.

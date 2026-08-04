@@ -23,6 +23,8 @@ import {
   PLAYER_COLORS,
   type Category,
   type GameState,
+  type Player,
+  type Round,
   type RoundPhase,
 } from '../game/types';
 
@@ -49,6 +51,9 @@ export function RoundScreen({ state, dispatch, canUndo, onUndo, onQuit }: Props)
   // sobald eine andere Challenge gezogen wird, bleibt aber ueber die Phasen
   // einer Runde hinweg stehen.
   const [wheelSpin, setWheelSpin] = useState<{ challengeId: string; spin: WheelSpin } | null>(null);
+  // Runde, deren Einsätze bereits aufgedeckt sind. Bis dahin sieht man nur,
+  // *dass* jemand gesetzt hat, nicht wie viel.
+  const [revealedRound, setRevealedRound] = useState<number | null>(null);
 
   const round = currentRound(state);
   const starter = state.players.find((p) => p.id === round.starterId);
@@ -80,6 +85,7 @@ export function RoundScreen({ state, dispatch, canUndo, onUndo, onQuit }: Props)
     dispatch({ type: 'SET_CHALLENGE', challengeId: drawn.id, category: drawn.category });
   }
 
+  const betsRevealed = revealedRound === round.index;
   const missingBets = playersWithoutBet(state);
   const missingResults = playersWithoutResult(state);
   const groupCheck = validateGroups(state.players, round.groups);
@@ -196,27 +202,40 @@ export function RoundScreen({ state, dispatch, canUndo, onUndo, onQuit }: Props)
             )}
             <div className="player-grid">
               {state.players.map((p) => {
-                const groupIndex = round.groups.findIndex((g) => g.memberIds.includes(p.id));
+                const hasBet = round.bets[p.id] !== undefined;
                 const note =
                   round.jokerId === p.id
                     ? 'Joker'
-                    : groupIndex >= 0
-                      ? `Paar ${groupIndex + 1}`
-                      : `${remainingBudget(p)} P. übrig`;
+                    : (groupNote(p.id, round, state.players) ??
+                      `${remainingBudget(p)} P. übrig`);
                 return (
                   <PlayerCard
                     key={p.id}
                     player={p}
                     isStarter={p.id === round.starterId}
                     note={note}
-                    done={round.bets[p.id] !== undefined}
+                    done={hasBet}
                   >
-                    <ChipPicker
-                      player={p}
-                      selected={round.bets[p.id]}
-                      onSelect={(chip) => dispatch({ type: 'PLACE_BET', playerId: p.id, chip })}
-                      onClear={() => dispatch({ type: 'CLEAR_BET', playerId: p.id })}
-                    />
+                    {hasBet && !betsRevealed ? (
+                      // Verdeckt: Nur die Markierung, nicht der Wert.
+                      <div className="bet-hidden">
+                        <span className="bet-hidden-label">Gesetzt</span>
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-ghost"
+                          onClick={() => dispatch({ type: 'CLEAR_BET', playerId: p.id })}
+                        >
+                          Ändern
+                        </button>
+                      </div>
+                    ) : (
+                      <ChipPicker
+                        player={p}
+                        selected={round.bets[p.id]}
+                        onSelect={(chip) => dispatch({ type: 'PLACE_BET', playerId: p.id, chip })}
+                        onClear={() => dispatch({ type: 'CLEAR_BET', playerId: p.id })}
+                      />
+                    )}
                   </PlayerCard>
                 );
               })}
@@ -240,7 +259,15 @@ export function RoundScreen({ state, dispatch, canUndo, onUndo, onQuit }: Props)
                   style={{ textAlign: 'left' }}
                   onClick={() => dispatch({ type: 'ASSIGN_JOKER', groupId: g.id })}
                 >
-                  <span className="group-title">Paar {i + 1} - antippen</span>
+                  <span className="group-title">
+                    Paar {i + 1} - antippen
+                    <span className="group-names">
+                      {g.memberIds
+                        .map((id) => state.players.find((p) => p.id === id)?.name)
+                        .filter((name) => name !== undefined)
+                        .join(' & ')}
+                    </span>
+                  </span>
                   <div className="group-members">
                     {g.memberIds.map((id) => {
                       const p = state.players.find((x) => x.id === id);
@@ -321,14 +348,25 @@ export function RoundScreen({ state, dispatch, canUndo, onUndo, onQuit }: Props)
                 Fehlt noch: {missingBets.map((p) => p.name).join(', ')}
               </span>
             )}
-            <button
-              type="button"
-              className="btn btn-primary"
-              disabled={missingBets.length > 0}
-              onClick={() => dispatch({ type: 'CONFIRM_BETS' })}
-            >
-              Einsätze bestätigen
-            </button>
+            {betsRevealed ? (
+              <button
+                type="button"
+                className="btn btn-primary"
+                disabled={missingBets.length > 0}
+                onClick={() => dispatch({ type: 'CONFIRM_BETS' })}
+              >
+                Einsätze bestätigen
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="btn btn-primary"
+                disabled={missingBets.length > 0}
+                onClick={() => setRevealedRound(round.index)}
+              >
+                Einsätze aufdecken
+              </button>
+            )}
           </>
         )}
 
@@ -358,6 +396,22 @@ export function RoundScreen({ state, dispatch, canUndo, onUndo, onQuit }: Props)
   );
 }
 
+/**
+ * Beschriftung der Paarung eines Spielers - mit den Namen der Mitspieler,
+ * damit man nicht raten muss, wer hinter "Paar 2" steckt.
+ */
+function groupNote(playerId: string, round: Round, players: Player[]): string | null {
+  const index = round.groups.findIndex((g) => g.memberIds.includes(playerId));
+  if (index < 0) return null;
+  const label = round.category === 'DUELL' ? `Duell ${index + 1}` : `Paar ${index + 1}`;
+  const others = round.groups[index].memberIds
+    .filter((id) => id !== playerId)
+    .map((id) => players.find((p) => p.id === id)?.name)
+    .filter((name): name is string => name !== undefined);
+  if (others.length === 0) return label;
+  return `${label} · ${round.category === 'DUELL' ? 'gegen' : 'mit'} ${others.join(', ')}`;
+}
+
 function phaseHint(phase: RoundPhase, state: GameState, needsGroups: boolean): string {
   switch (phase) {
     case 'challenge':
@@ -368,8 +422,8 @@ function phaseHint(phase: RoundPhase, state: GameState, needsGroups: boolean): s
       return 'Zwei Spieler antippen, um ein Paar zu bilden.';
     case 'betting':
       return needsGroups
-        ? 'Jeder setzt einen Chip - auch der Joker.'
-        : 'Jeder setzt einen Chip, bevor gespielt wird.';
+        ? 'Jeder setzt verdeckt einen Chip - auch der Joker. Danach aufdecken.'
+        : 'Jeder setzt verdeckt einen Chip. Danach aufdecken.';
     case 'joker':
       return 'Erst jetzt, nachdem die Paare gespielt haben.';
     case 'resolve':

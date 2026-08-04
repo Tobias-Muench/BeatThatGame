@@ -89,6 +89,11 @@ export function ResolvePanel({ players, round, dispatch }: Props) {
             <div key={g.id} className="group-card">
               <span className="group-title">
                 {category === 'DUELL' ? 'Duell' : 'Zweigespann'} {i + 1}
+                {members.length > 0 && (
+                  <span className="group-names">
+                    {members.map((m) => m.name).join(category === 'DUELL' ? ' gegen ' : ' & ')}
+                  </span>
+                )}
               </span>
               <div className="group-members">
                 {members.map((m) => (
@@ -125,6 +130,7 @@ export function ResolvePanel({ players, round, dispatch }: Props) {
                   </button>
                 </div>
               ) : (
+                // Im Duell gewinnt immer einer der beiden - kein "Keiner".
                 <div className="result-toggle" style={{ flexWrap: 'wrap' }}>
                   {members.map((m) => (
                     <button
@@ -139,16 +145,6 @@ export function ResolvePanel({ players, round, dispatch }: Props) {
                       {m.name} gewinnt
                     </button>
                   ))}
-                  <button
-                    type="button"
-                    className="result-btn no"
-                    aria-pressed={groupResult === 'fail'}
-                    onClick={() =>
-                      dispatch({ type: 'SET_DUEL_WINNER', groupId: g.id, winnerId: null })
-                    }
-                  >
-                    Keiner
-                  </button>
                 </div>
               )}
             </div>

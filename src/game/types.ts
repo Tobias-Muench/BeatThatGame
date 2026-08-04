@@ -12,7 +12,7 @@ export const MIN_ROUNDS = 5;
 export const MAX_ROUNDS = START_CHIPS.length;
 
 export const MIN_PLAYERS = 2;
-export const MAX_PLAYERS = 8;
+export const MAX_PLAYERS = 16;
 
 /** Die vier Challenge-Kategorien des Spiels. */
 export type Category = 'SOLO' | 'MEISTERSCHAFT' | 'ZWEIGESPANN' | 'DUELL';
@@ -147,4 +147,12 @@ export const PLAYER_COLORS = [
   '#1c9d54',
   '#d0332f',
   '#c99000',
+  '#35bde3',
+  '#6d4de6',
+  '#8a9a00',
+  '#b5651d',
+  '#00867d',
+  '#ff7fa8',
+  '#4a5b6b',
+  '#7fbf3f',
 ] as const;

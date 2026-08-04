@@ -13,7 +13,7 @@ offline, ohne Konto und ohne Server.
     angezeigt.
 - **Zufallsrad für Challenges, die eine ausgeloste Zahl brauchen** – erscheint automatisch neben
   der Challenge und kann innerhalb einer Runde beliebig oft neu gedreht werden.
-- **2 bis 8 Spieler**, Namen frei wählbar, 5 bis 10 Runden.
+- **2 bis 16 Spieler**, Namen frei wählbar, 5 bis 10 Runden.
 - **Chip-Verwaltung nach Originalregel**: jeder startet mit 5×1 + 3×3 + 2×5 Chips. Jeder Chip ist
   genau einmal einsetzbar.
 - **Alle vier Kategorien**: Solo, Meisterschaft, Zweigespann, Duell – inklusive Paarbildung und
@@ -31,12 +31,14 @@ offline, ohne Konto und ohne Server.
 4. Bei **Zweigespann** und **Duell** werden zuerst Paare gebildet. Bleibt bei ungerader
    Spielerzahl jemand übrig, ist diese Person **Joker**: sie setzt ganz normal vorher ihren Chip,
    schaut sich die anderen Paare an und schließt sich erst danach einem Paar an.
-5. **Alle** Spieler setzen einen ihrer verbleibenden Chips.
+5. **Alle** Spieler setzen verdeckt einen ihrer verbleibenden Chips: Antippen markiert die Karte
+   nur als *gesetzt*, der Wert bleibt verborgen. Erst *Einsätze aufdecken* zeigt allen, wer wie
+   viel riskiert hat.
 6. Die Challenge wird gespielt und ausgewertet:
    - *Solo* – jeder für sich geschafft oder nicht.
    - *Meisterschaft* – die Sieger antippen, der Rest geht leer aus.
    - *Zweigespann* – das Ergebnis gilt für das ganze Paar.
-   - *Duell* – pro Paar gewinnt einer; „Keiner" ist auch möglich.
+   - *Duell* – pro Paar gewinnt genau einer der beiden.
 7. Wer bestanden hat, bankt die Punkte seines Chips. Wer scheitert, verliert sie an die Bank.
    Der Chip ist in beiden Fällen aufgebraucht.
 8. Nach der letzten Runde gewinnt der höchste Punktestand.

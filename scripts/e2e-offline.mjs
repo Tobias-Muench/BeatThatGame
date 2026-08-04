@@ -45,6 +45,7 @@ const cards = page.locator('.player-card');
 for (let i = 0; i < (await cards.count()); i++) {
   await cards.nth(i).locator('.chip').first().click();
 }
+await page.getByRole('button', { name: 'Einsätze aufdecken' }).click();
 await page.getByRole('button', { name: 'Einsätze bestätigen' }).click();
 for (let i = 0; i < (await cards.count()); i++) {
   await cards.nth(i).locator('.result-btn.ok').click();
