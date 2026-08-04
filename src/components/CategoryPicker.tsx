@@ -14,7 +14,7 @@ export function CategoryPicker({ selected, onSelect }: Props) {
           <button
             key={category}
             type="button"
-            className="category-tile"
+            className={`category-tile cat-${category.toLowerCase()}`}
             aria-pressed={selected === category}
             onClick={() => onSelect(category)}
           >

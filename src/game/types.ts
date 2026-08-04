@@ -139,12 +139,12 @@ export interface GameState {
 }
 
 export const PLAYER_COLORS = [
-  '#f5b301',
-  '#4cc9f0',
-  '#f72585',
-  '#57cc99',
-  '#ff8c42',
-  '#b892ff',
-  '#ff5d5d',
-  '#5ce1e6',
+  '#ef6c1a',
+  '#0f6bc8',
+  '#e23c8e',
+  '#1f95a6',
+  '#8b4399',
+  '#1c9d54',
+  '#d0332f',
+  '#c99000',
 ] as const;
