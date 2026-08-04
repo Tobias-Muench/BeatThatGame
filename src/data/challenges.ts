@@ -37,10 +37,13 @@ export const challenges: Challenge[] = [
   {
     id: 'solo-01',
     category: 'SOLO',
-    title: 'PLATZHALTER Solo 1',
-    text: 'Hier den Text deiner Solo-Karte eintragen.',
-    timeLimitSec: 30,
-    material: ['Becher'],
+    title: 'Schwimmnudel-Balance',
+    text:
+      'Halte eine Schwimmnudel unterhalb der Markierung am einen Ende. ' +
+      'Lege die zweite Schwimmnudel unterhalb der zweiten Markierung am anderen Ende quer darauf. ' +
+      'Balanciere sie einmal um den Pool herum. ' +
+      'Du hast nur einen Versuch: Fällt die Schwimmnudel runter, ist die Challenge nicht geschafft.',
+    material: ['2 Schwimmnudeln'],
   },
   {
     id: 'solo-02',
