@@ -72,7 +72,8 @@ export function TeamBuilder({ players, groups, jokerId, starterId, onChange }: P
         {joker && (
           <div className="joker-note" style={{ marginBottom: 18 }}>
             <strong>{joker.name}</strong> bleibt übrig und ist Joker: setzt jetzt ganz normal
-            einen Chip, schaut sich die anderen Paare an und schließt sich danach einem Paar an.
+            einen Chip. Nachdem alle Paare entschieden haben, wählt er sich eine Person für eine
+            zweite Runde - deren erstes Ergebnis zählt dann nicht mehr.
           </div>
         )}
 

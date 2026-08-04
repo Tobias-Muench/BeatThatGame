@@ -40,7 +40,6 @@ const PHASE_TITLE: Record<RoundPhase, string> = {
   challenge: 'Challenge',
   groups: 'Paare bilden',
   betting: 'Einsätze',
-  joker: 'Joker wählt seine Gruppe',
   resolve: 'Auswertung',
 };
 
@@ -75,7 +74,6 @@ export function RoundScreen({ state, dispatch, canUndo, onUndo, onQuit }: Props)
   const phases: RoundPhase[] = ['challenge'];
   if (needsGroups) phases.push('groups');
   phases.push('betting');
-  if (needsGroups) phases.push('joker');
   phases.push('resolve');
   const phaseIndex = phases.indexOf(round.phase);
 
@@ -244,52 +242,6 @@ export function RoundScreen({ state, dispatch, canUndo, onUndo, onQuit }: Props)
           </div>
         )}
 
-        {round.phase === 'joker' && round.jokerId && (
-          <div className="scroll">
-            <div className="joker-note" style={{ marginBottom: 18 }}>
-              <strong>{state.players.find((p) => p.id === round.jokerId)?.name}</strong> hat bereits
-              gesetzt und darf sich jetzt - nachdem alle Paare gespielt haben - eine Gruppe
-              aussuchen.
-            </div>
-            <div className="group-grid">
-              {round.groups.map((g, i) => (
-                <button
-                  key={g.id}
-                  type="button"
-                  className="group-card is-selectable"
-                  style={{ textAlign: 'left' }}
-                  onClick={() => dispatch({ type: 'ASSIGN_JOKER', groupId: g.id })}
-                >
-                  <span className="group-title">
-                    Paar {i + 1} - antippen
-                    <span className="group-names">
-                      {g.memberIds
-                        .map((id) => state.players.find((p) => p.id === id)?.name)
-                        .filter((name) => name !== undefined)
-                        .join(' & ')}
-                    </span>
-                  </span>
-                  <div className="group-members">
-                    {g.memberIds.map((id) => {
-                      const p = state.players.find((x) => x.id === id);
-                      if (!p) return null;
-                      return (
-                        <span className="member-row" key={id}>
-                          <span
-                            className="dot"
-                            style={{ background: PLAYER_COLORS[p.colorIndex] }}
-                          />
-                          {p.name}
-                        </span>
-                      );
-                    })}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
         {round.phase === 'resolve' && (
           <>
             {wheelBlock}
@@ -371,8 +323,6 @@ export function RoundScreen({ state, dispatch, canUndo, onUndo, onQuit }: Props)
           </>
         )}
 
-        {round.phase === 'joker' && <span className="warn">Gruppe antippen.</span>}
-
         {round.phase === 'resolve' && (
           <>
             {missingResults.length > 0 && (
@@ -425,8 +375,6 @@ function phaseHint(phase: RoundPhase, state: GameState, needsGroups: boolean): s
       return needsGroups
         ? 'Jeder setzt verdeckt einen Chip - auch der Joker. Danach aufdecken.'
         : 'Jeder setzt verdeckt einen Chip. Danach aufdecken.';
-    case 'joker':
-      return 'Erst jetzt, nachdem die Paare gespielt haben.';
     case 'resolve':
       return 'Wer es geschafft hat, bankt seine Punkte.';
   }

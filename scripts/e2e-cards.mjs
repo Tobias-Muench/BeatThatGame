@@ -68,16 +68,18 @@ for (let round = 0; round < 5; round++) {
   await click('Einsätze aufdecken');
   await click('Einsätze bestätigen');
 
-  if (needsGroups) {
-    await page.waitForSelector('.group-card.is-selectable');
-    await page.locator('.group-card.is-selectable').first().click();
-  }
-
   await page.waitForSelector('.result-btn');
   if (needsGroups) {
     const groups = page.locator('.group-card');
     const g = await groups.count();
     for (let i = 0; i < g; i++) await groups.nth(i).locator('.result-btn.ok').first().click();
+
+    // 3 Spieler -> 1 Paar + 1 Joker. Er waehlt erst jetzt eine Person fuer
+    // eine zweite Runde; deren erstes Ergebnis zaehlt danach nicht mehr.
+    await page.waitForSelector('.joker-pick .pool-player');
+    await page.locator('.joker-pick .pool-player').first().click();
+    await page.waitForSelector('.group-card--joker .result-btn');
+    await page.locator('.group-card--joker .result-btn.ok').first().click();
   } else {
     const rc = page.locator('.player-card');
     const c = await rc.count();

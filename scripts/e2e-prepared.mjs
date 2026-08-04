@@ -111,16 +111,6 @@ for (let round = 0; round < 5; round++) {
   await click('Einsätze aufdecken');
   await click('Einsätze bestätigen');
 
-  // Joker waehlt seine Gruppe.
-  if (needsGroups) {
-    await page.waitForSelector('.group-card.is-selectable');
-    if (round === 0) {
-      await shot('joker-waehlt');
-      await checkNoHorizontalScroll('Joker');
-    }
-    await page.locator('.group-card.is-selectable').first().click();
-  }
-
   // Auswertung.
   await page.waitForSelector('.result-btn');
   if (category === 'Solo' || category === 'Meisterschaft') {
@@ -144,6 +134,21 @@ for (let round = 0; round < 5; round++) {
       await groups.nth(i).locator('.result-btn.ok').first().click();
     }
   }
+
+  // Bei 5 Spielern bleibt in Duell/Zweigespann ein Joker uebrig: Er waehlt
+  // erst, nachdem beide Paare entschieden haben, eine Person fuer eine
+  // zweite Runde - deren erstes Ergebnis zaehlt danach nicht mehr.
+  if (needsGroups) {
+    await page.waitForSelector('.joker-pick .pool-player');
+    if (round === 0) {
+      await shot('joker-waehlt');
+      await checkNoHorizontalScroll('Joker-Partnerwahl');
+    }
+    await page.locator('.joker-pick .pool-player').first().click();
+    await page.waitForSelector('.group-card--joker .result-btn');
+    await page.locator('.group-card--joker .result-btn.ok').first().click();
+  }
+
   if (round === 0) {
     await shot('auswertung');
     await checkNoHorizontalScroll('Auswertung');

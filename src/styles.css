@@ -674,8 +674,22 @@ button {
   gap: 12px;
 }
 
-.group-card.is-selectable {
+/* Joker-Gruppe: spielt die Challenge ein zweites Mal, deutlich hervorgehoben. */
+.group-card--joker {
   border-color: var(--accent);
+  background: rgba(239, 108, 26, 0.06);
+}
+
+/* Person wurde vom Joker abgeholt - nur noch Erinnerung, nicht mehr editierbar. */
+.group-card--reduced {
+  border-style: dashed;
+  opacity: 0.75;
+}
+
+.group-note {
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  line-height: 1.4;
 }
 
 .group-card .group-title {
@@ -794,6 +808,26 @@ button {
 
 .joker-note strong {
   color: var(--accent-text);
+}
+
+/* Ergebnis-Hinweis in der Joker-Partnerwahl - zeigt das erste (noch nicht
+   endgueltige) Ergebnis, damit man gezielt jemanden herausfordern kann. */
+.result-hint {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.result-hint.ok {
+  background: rgba(28, 157, 84, 0.14);
+  color: var(--success);
+}
+
+.result-hint.no {
+  background: rgba(208, 51, 47, 0.12);
+  color: var(--danger);
 }
 
 /* ---------------------------------------------------------------- Ergebnisse */

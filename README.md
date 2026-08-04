@@ -28,9 +28,9 @@ offline, ohne Konto und ohne Server.
 1. Jeder Spieler bekommt 10 Chips: fünf Einer, drei Dreier, zwei Fünfer (maximal 24 Punkte).
 2. Der Startspieler wechselt jede Runde reihum und wird oben angezeigt.
 3. Die Challenge wird gezogen und vorgelesen.
-4. Bei **Zweigespann** und **Duell** werden zuerst Paare gebildet. Bleibt bei ungerader
-   Spielerzahl jemand übrig, ist diese Person **Joker**: sie setzt ganz normal vorher ihren Chip,
-   schaut sich die anderen Paare an und schließt sich erst danach einem Paar an.
+4. Bei **Zweigespann** und **Duell** werden zuerst Paare gebildet – reihum ab dem Startspieler:
+   Wer dran ist, ist vorausgewählt und tippt nur noch seinen Partner an. Bleibt bei ungerader
+   Spielerzahl jemand übrig, ist diese Person **Joker** und setzt ganz normal ihren Chip mit.
 5. **Alle** Spieler setzen verdeckt einen ihrer verbleibenden Chips: Antippen markiert die Karte
    nur als *gesetzt*, der Wert bleibt verborgen. Erst *Einsätze aufdecken* zeigt allen, wer wie
    viel riskiert hat.
@@ -39,6 +39,9 @@ offline, ohne Konto und ohne Server.
    - *Meisterschaft* – die Sieger antippen, der Rest geht leer aus.
    - *Zweigespann* – das Ergebnis gilt für das ganze Paar.
    - *Duell* – pro Paar gewinnt genau einer der beiden.
+   - Der **Joker** wartet, bis alle Paare entschieden haben, und wählt sich dann eine bereits
+     gepaarte Person für eine zweite, eigene Runde derselben Challenge. Ihr erstes Ergebnis
+     zählt danach nicht mehr – nur das Ergebnis dieser zweiten Runde entscheidet, für beide.
 7. Wer bestanden hat, bankt die Punkte seines Chips. Wer scheitert, verliert sie an die Bank.
    Der Chip ist in beiden Fällen aufgebraucht.
 8. Nach der letzten Runde gewinnt der höchste Punktestand.

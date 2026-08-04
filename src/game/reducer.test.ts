@@ -264,7 +264,7 @@ describe('Zweigespann und Duell', () => {
 });
 
 describe('Joker bei ungerader Spielerzahl', () => {
-  it('setzt vorher, wählt danach seine Gruppe und wird dort gewertet', () => {
+  it('setzt vorher, wartet bis alle Paare entschieden haben und wählt dann eine zweite Runde', () => {
     let s = newGame(5);
     const [a, b, c, d, e] = s.players.map((p) => p.id);
     s = run(
@@ -295,24 +295,39 @@ describe('Joker bei ungerader Spielerzahl', () => {
       { type: 'PLACE_BET', playerId: e, chip: 5 },
       { type: 'CONFIRM_BETS' },
     );
-    expect(currentRound(s).phase).toBe('joker');
+    expect(currentRound(s).phase).toBe('resolve');
 
-    s = gameReducer(s, { type: 'ASSIGN_JOKER', groupId: 'g2' });
-    const round = currentRound(s);
-    expect(round.phase).toBe('resolve');
-    expect(round.jokerId).toBeNull();
-    expect(round.groups.find((g) => g.id === 'g2')?.memberIds).toEqual([c, d, e]);
+    // Vor der Entscheidung beider Paare darf der Joker noch nicht wählen.
+    const tooEarly = gameReducer(s, { type: 'PICK_JOKER_PARTNER', partnerId: c });
+    expect(tooEarly.rounds[0].groups.some((g) => g.isJoker)).toBe(false);
 
     s = run(
       s,
       { type: 'SET_GROUP_RESULT', groupId: 'g1', result: 'fail' },
       { type: 'SET_GROUP_RESULT', groupId: 'g2', result: 'success' },
-      { type: 'FINISH_ROUND' },
+      // Der Joker holt sich Cem - dessen erstes Ergebnis (success) zählt jetzt nicht mehr.
+      { type: 'PICK_JOKER_PARTNER', partnerId: c },
     );
-    expect(s.players.map((p) => p.banked)).toEqual([0, 0, 1, 1, 5]);
+    let round = currentRound(s);
+    const jokerGroup = round.groups.find((g) => g.isJoker);
+    expect(jokerGroup?.memberIds).toEqual([e, c]);
+    expect(round.groups.find((g) => g.id === 'g2')?.memberIds).toEqual([d]);
+    // Cems erstes Ergebnis wurde verworfen, bis die zweite Runde entschieden ist.
+    expect(round.results[c]).toBeUndefined();
+
+    s = run(s, { type: 'SET_GROUP_RESULT', groupId: jokerGroup!.id, result: 'fail' });
+    round = currentRound(s);
+    expect(round.results[c]).toBe('fail');
+    expect(round.results[d]).toBe('success');
+    expect(round.results[e]).toBe('fail');
+
+    s = gameReducer(s, { type: 'FINISH_ROUND' });
+    // a,b: fail (Chip 1) / c: fail (Chip 1, aus der zweiten Runde) / d: success (Chip 1) / e: fail (Chip 5).
+    expect(s.players.map((p) => p.banked)).toEqual([0, 0, 0, 1, 0]);
+    expect(s.players.map((p) => p.lost)).toEqual([1, 1, 1, 0, 5]);
   });
 
-  it('kann sich im Duell einer Dreiergruppe anschließen und dort gewinnen', () => {
+  it('lässt den Joker im Duell gegen die abgeholte Person gewinnen', () => {
     let s = newGame(3);
     const [a, b, c] = s.players.map((p) => p.id);
     s = run(
@@ -325,15 +340,22 @@ describe('Joker bei ungerader Spielerzahl', () => {
       { type: 'PLACE_BET', playerId: b, chip: 3 },
       { type: 'PLACE_BET', playerId: c, chip: 5 },
       { type: 'CONFIRM_BETS' },
-      { type: 'ASSIGN_JOKER', groupId: 'g1' },
-      { type: 'SET_DUEL_WINNER', groupId: 'g1', winnerId: c },
+      { type: 'SET_DUEL_WINNER', groupId: 'g1', winnerId: a },
+      // Der Joker fordert Anna heraus, die das erste Duell gewonnen hatte.
+      { type: 'PICK_JOKER_PARTNER', partnerId: a },
+    );
+    const jokerGroup = currentRound(s).groups.find((g) => g.isJoker)!;
+    s = run(
+      s,
+      { type: 'SET_DUEL_WINNER', groupId: jokerGroup.id, winnerId: c },
       { type: 'FINISH_ROUND' },
     );
+    // Anna verliert jetzt trotz des ersten Sieges, Ben bleibt bei seiner Niederlage, Cem gewinnt.
     expect(s.players.map((p) => p.banked)).toEqual([0, 0, 5]);
     expect(s.players.map((p) => p.lost)).toEqual([1, 3, 0]);
   });
 
-  it('überspringt die Joker-Phase bei gerader Spielerzahl', () => {
+  it('hat bei gerader Spielerzahl gar keinen Joker', () => {
     let s = newGame(4);
     const ids = s.players.map((p) => p.id);
     s = run(

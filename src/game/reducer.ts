@@ -37,8 +37,12 @@ export type GameAction =
   | { type: 'PLACE_BET'; playerId: string; chip: ChipValue }
   | { type: 'CLEAR_BET'; playerId: string }
   | { type: 'CONFIRM_BETS' }
-  /** Joker schließt sich nachträglich einer Gruppe an. */
-  | { type: 'ASSIGN_JOKER'; groupId: string }
+  /**
+   * Joker wählt einen bereits gepaarten Spieler, um mit ihm die Challenge
+   * noch einmal zu zweit zu spielen. Nur möglich, wenn alle ursprünglichen
+   * Paare bereits ein Ergebnis haben.
+   */
+  | { type: 'PICK_JOKER_PARTNER'; partnerId: string }
   | { type: 'SET_RESULT'; playerId: string; result: Result }
   /** Ergebnis für eine ganze Gruppe (Zweigespann). */
   | { type: 'SET_GROUP_RESULT'; groupId: string; result: Result }
@@ -245,19 +249,36 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     case 'CONFIRM_BETS': {
       if (round.phase !== 'betting') return state;
       if (playersWithoutBet(state).length > 0) return state;
-      // Der Joker setzt vorher und wählt seine Gruppe erst danach.
-      return withRound(state, { ...round, phase: round.jokerId ? 'joker' : 'resolve' });
+      return withRound(state, { ...round, phase: 'resolve' });
     }
 
-    case 'ASSIGN_JOKER': {
-      if (round.phase !== 'joker' || !round.jokerId) return state;
-      const target = round.groups.find((g) => g.id === action.groupId);
-      if (!target) return state;
+    case 'PICK_JOKER_PARTNER': {
+      if (round.phase !== 'resolve' || !round.jokerId) return state;
+      // Schon gewählt - nur einmal pro Runde möglich.
+      if (round.groups.some((g) => g.isJoker)) return state;
+      const partnerId = action.partnerId;
+      const originalGroup = round.groups.find(
+        (g) => !g.isJoker && g.memberIds.includes(partnerId),
+      );
+      if (!originalGroup) return state;
+      // Der Joker wählt erst, nachdem alle ursprünglichen Paare entschieden sind.
+      const allPairsDecided = round.groups
+        .filter((g) => !g.isJoker)
+        .every((g) => g.memberIds.every((id) => round.results[id] !== undefined));
+      if (!allPairsDecided) return state;
+
       const jokerId = round.jokerId;
       const groups = round.groups.map((g) =>
-        g.id === action.groupId ? { ...g, memberIds: [...g.memberIds, jokerId] } : g,
+        g.id === originalGroup.id
+          ? { ...g, memberIds: g.memberIds.filter((id) => id !== partnerId) }
+          : g,
       );
-      return withRound(state, { ...round, groups, jokerId: null, phase: 'resolve' });
+      groups.push({ id: nextId('g'), memberIds: [jokerId, partnerId], isJoker: true });
+      // Das erste Ergebnis der ausgewählten Person zählt nicht mehr - sie
+      // entscheidet sich mit dem Joker neu.
+      const results = { ...round.results };
+      delete results[partnerId];
+      return withRound(state, { ...round, groups, results });
     }
 
     case 'SET_RESULT': {

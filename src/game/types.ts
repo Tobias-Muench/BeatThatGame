@@ -86,10 +86,16 @@ export interface Player {
   lost: number;
 }
 
-/** Paar (bei ungerader Spielerzahl nach der Joker-Zuordnung auch zu dritt). */
+/**
+ * Paar. Nach der Joker-Zuordnung wird die abgegebene Person aus ihrer
+ * ursprünglichen Gruppe entfernt (sie bleibt dann zu zweit statt zu dritt
+ * zurück) und stattdessen einer neuen, als `isJoker` markierten Gruppe
+ * zugeteilt, die den Joker mit der ausgewählten Person zusammenbringt.
+ */
 export interface Group {
   id: string;
   memberIds: string[];
+  isJoker?: boolean;
 }
 
 export type Result = 'success' | 'fail';
@@ -101,9 +107,7 @@ export type RoundPhase =
   | 'groups'
   /** Alle Spieler setzen einen Chip. */
   | 'betting'
-  /** Übriger Spieler wählt nachträglich seine Gruppe. */
-  | 'joker'
-  /** Ergebnisse eintragen. */
+  /** Ergebnisse eintragen - hier wählt der Joker auch seinen Partner. */
   | 'resolve';
 
 export interface Round {
@@ -122,7 +126,7 @@ export interface Round {
   phase: RoundPhase;
 }
 
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 export interface GameState {
   version: typeof SCHEMA_VERSION;
