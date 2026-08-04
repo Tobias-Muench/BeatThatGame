@@ -87,7 +87,7 @@ export const challenges: Challenge[] = [
     text:
       'Stellt euch mit je einem Tischtennisball in die beiden Ecken am Kopfende des Pools. ' +
       'Ditscht den Ball so über die Poolfliesen, dass er möglichst viele Fliesen berührt. ' +
-      'Jede Fliese zählt nur einmal. ' +
+      'Eine Fliese zählt nur, wenn der Ball genau einmal darauf aufkommt: Trifft er sie ein zweites Mal, zählt sie nicht. ' +
       'Jeder hat drei Durchgänge, die berührten Fliesen aus allen drei Durchgängen werden addiert. ' +
       'Gewonnen hat, wer am Ende auf die meisten Fliesen kommt.',
     material: ['2 Tischtennisbälle'],
